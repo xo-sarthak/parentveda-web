@@ -1,26 +1,243 @@
 @import "tailwindcss";
 
+/* ============================================================
+   ParentVeda — brand design tokens (Tailwind v4 @theme)
+   In Tailwind v4 the theme *is* the config: every token below
+   becomes a real utility (e.g. --color-brand-500 -> bg-brand-500).
+   ============================================================ */
+@theme {
+  /* — Page surfaces — */
+  --color-canvas: #fbf9fe; /* soft lavender-white page bg (never pure white) */
+  --color-surface: #ffffff; /* raised cards */
+
+  /* — Tinted lavender containers — */
+  --color-mist: #f3eef7;
+  --color-mist-2: #ece5f2;
+  --color-mist-3: #e6deed;
+
+  /* — Primary: purple (the signature brand color) — */
+  --color-brand-50: #f3eff9;
+  --color-brand-100: #e4daf2;
+  --color-brand-200: #cbb6e5;
+  --color-brand-300: #ad8dd7;
+  --color-brand-400: #8f64c8;
+  --color-brand-500: #6a30b6;
+  --color-brand-600: #5d2aa0;
+  --color-brand-700: #502489;
+  --color-brand-800: #401d6d;
+  --color-brand-900: #2d144c;
+
+  /* — Secondary: coral/pink (warmth & highlights) — */
+  --color-coral-50: #fff1f4;
+  --color-coral-100: #ffdbe2;
+  --color-coral-200: #ffc2cd;
+  --color-coral-300: #ff9caf;
+  --color-coral-400: #ff7e96;
+  --color-coral-500: #ff5a79;
+  --color-coral-700: #bf435b;
+
+  /* — Tertiary: earthy brown (grounded accents) — */
+  --color-earth-50: #f7f2ec;
+  --color-earth-100: #efe5d8;
+  --color-earth-300: #d9b98a;
+  --color-earth-500: #7a4600;
+  --color-earth-700: #5c3500;
+
+  /* — Neutral: warm grey (text & structure) — */
+  --color-ink-50: #f4f3f5;
+  --color-ink-100: #e4e2e5;
+  --color-ink-200: #d5d2d8;
+  --color-ink-300: #b2aeb5;
+  --color-ink-400: #948e99;
+  --color-ink-500: #7b757f;
+  --color-ink-600: #69636c;
+  --color-ink-700: #565059;
+  --color-ink-800: #403c44;
+  --color-ink-900: #2f2c30;
+
+  /* — Utility brand colors — */
+  --color-wa: #25d366; /* WhatsApp green — ONLY for the WhatsApp CTA */
+  --color-wa-dark: #1eb955;
+  --color-father-slate: #2d3436;
+  --color-father-amber: #e0921c;
+
+  /* — Type system (3 fonts, wired from next/font in layout.tsx) — */
+  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
+  --font-heading: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* — Radii — */
+  --radius-card: 22px;
+  --radius-btn: 16px;
+  --radius-input: 16px;
+  --radius-xl2: 28px;
+
+  /* — Soft, lavender-tinted elevation (never hard drops) — */
+  --shadow-soft: 0 10px 30px -12px rgba(45, 20, 76, 0.1);
+  --shadow-card: 0 20px 45px -22px rgba(45, 20, 76, 0.16);
+  --shadow-float: 0 36px 70px -26px rgba(45, 20, 76, 0.24);
+  --shadow-glow: 0 18px 50px -16px rgba(255, 90, 121, 0.28);
+
+  /* — Ambient, slow, never-bouncy motion — */
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float-slow 11s ease-in-out infinite;
+  --animate-breathe: breathe 6.5s ease-in-out infinite;
+  --animate-drift: drift 17s ease-in-out infinite;
+  --animate-blob: blob 22s ease-in-out infinite;
+  --animate-sway: sway 8s ease-in-out infinite;
+  --animate-twinkle: twinkle 4.5s ease-in-out infinite;
+  --animate-orbit: orbit 26s linear infinite;
+}
+
+/* ============================================================
+   Base layer
+   ============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --nav-h: 78px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: var(--nav-h);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-canvas);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+/* Sensible heading defaults (UI sans). Display titles opt into font-display. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-brand-900);
+}
+
+/* Accessible, on-brand focus ring */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Anchor offset so sticky nav never covers section headings */
+:where(section, div)[id] {
+  scroll-margin-top: calc(var(--nav-h) + 18px);
+}
+
+/* Calm by default: respect reduced-motion fully */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Soft, slim scrollbar */
+@media (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-brand-200) transparent;
+  }
+}
+
+/* ============================================================
+   Custom utilities
+   ============================================================ */
+
+/* Purple→coral gradient text for the occasional accent word */
+@utility text-gradient {
+  background-image: linear-gradient(100deg, var(--color-brand-500) 0%, var(--color-brand-400) 42%, var(--color-coral-500) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Frosted translucent panel (navbar on scroll, glassy chips) */
+@utility glass {
+  background-color: color-mix(in srgb, var(--color-canvas) 72%, transparent);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+
+/* A hairline lavender divider */
+@utility hairline {
+  border-color: color-mix(in srgb, var(--color-brand-500) 12%, transparent);
+}
+
+/* Hide scrollbar but keep scroll (for the week rail) */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Calm hover-lift for cards */
+@utility lift {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-float);
+}
+
+/* ============================================================
+   Keyframes — all gentle, slow, looping
+   ============================================================ */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-22px); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(10px, -12px); }
+  66% { transform: translate(-9px, 9px); }
+}
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(26px, -22px) scale(1.07); }
+  66% { transform: translate(-20px, 16px) scale(0.95); }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-3.5deg); }
+  50% { transform: rotate(3.5deg); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.85); }
+  50% { opacity: 0.9; transform: scale(1.1); }
+}
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
 }

@@ -1,0 +1,128 @@
+import Section from "@/components/ui/Section";
+import Reveal from "@/components/ui/Reveal";
+import Eyebrow from "@/components/ui/Eyebrow";
+import { Blob, Twinkles } from "@/components/brand/Decor";
+import PhoneMock from "@/components/PhoneMock";
+import WeekScreen from "@/components/AppScreen";
+import { APP_STORE_HREF, PLAY_STORE_HREF } from "@/lib/content";
+
+function AppleGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M17.05 12.04c-.03-2.6 2.13-3.84 2.22-3.9-1.21-1.78-3.1-2.02-3.77-2.05-1.6-.16-3.13.94-3.94.94-.81 0-2.07-.92-3.4-.9-1.75.03-3.36 1.02-4.26 2.58-1.82 3.16-.47 7.84 1.3 10.41.86 1.26 1.89 2.67 3.24 2.62 1.3-.05 1.79-.84 3.36-.84 1.57 0 2.01.84 3.39.81 1.4-.02 2.29-1.28 3.15-2.55.99-1.46 1.4-2.88 1.42-2.95-.03-.01-2.73-1.05-2.76-4.16zM14.69 4.7c.72-.87 1.2-2.08 1.07-3.28-1.03.04-2.28.69-3.02 1.56-.66.77-1.24 2-1.08 3.18 1.15.09 2.32-.59 3.03-1.46z" />
+    </svg>
+  );
+}
+
+function PlayGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path fill="#00D7FE" d="M3.9 2.3c-.3.2-.5.5-.5 1v17.4c0 .5.2.8.5 1l9.3-9.7L3.9 2.3z" />
+      <path fill="#00F076" d="M3.9 2.3l9.3 9.7 3.7-3.8L6.2 1.7C5.3 1.2 4.4 1.3 3.9 2.3z" />
+      <path fill="#FFCD00" d="M16.9 8.2l-3.7 3.8 3.7 3.8 4.2-2.4c1-.6 1-1.8 0-2.4l-4.2-2.8z" />
+      <path fill="#FF3D44" d="M3.9 21.7c.5.9 1.4 1 2.3.5l10.7-6.4-3.7-3.8L3.9 21.7z" />
+    </svg>
+  );
+}
+
+function StoreBadge({
+  href,
+  glyph,
+  top,
+  bottom,
+}: {
+  href: string;
+  glyph: React.ReactNode;
+  top: string;
+  bottom: string;
+}) {
+  return (
+    <a
+      href={href}
+      className="flex items-center gap-3 rounded-2xl bg-ink-900 px-4 py-2.5 text-white shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:bg-ink-800"
+    >
+      <span className="grid h-7 w-7 place-items-center">{glyph}</span>
+      <span className="text-left leading-none">
+        <span className="block text-[0.62rem] font-medium uppercase tracking-wide text-white/70">
+          {top}
+        </span>
+        <span className="mt-1 block font-heading text-[1.05rem] font-bold leading-none">
+          {bottom}
+        </span>
+      </span>
+    </a>
+  );
+}
+
+export default function Download() {
+  return (
+    <Section
+      id="download"
+      className="relative overflow-hidden bg-gradient-to-b from-mist via-brand-50 to-coral-50/60 py-20 sm:py-28"
+    >
+      <Blob className="-left-24 top-6 h-80 w-80 bg-brand-200/40" animate />
+      <Blob className="-right-20 bottom-0 h-80 w-80 bg-coral-100/50" animate />
+      <Twinkles />
+
+      <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-10">
+        {/* copy */}
+        <div className="max-w-xl">
+          <Reveal>
+            <Eyebrow>Begin today</Eyebrow>
+          </Reveal>
+          <Reveal delay={0.05}>
+            <h2 className="mt-5 text-balance font-display text-[2.5rem] font-medium leading-[1.04] tracking-[-0.03em] text-ink-900 sm:text-[3.2rem]">
+              Begin your journey{" "}
+              <span className="text-gradient italic">today.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <p className="mt-5 max-w-md text-pretty text-[1.06rem] leading-relaxed text-ink-600">
+              A calmer, more rooted pregnancy is a tap away. Aapka calm companion is ready
+              whenever you are.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.15}>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <StoreBadge href={APP_STORE_HREF} glyph={<AppleGlyph className="h-6 w-6" />} top="Download on the" bottom="App Store" />
+              <StoreBadge href={PLAY_STORE_HREF} glyph={<PlayGlyph className="h-6 w-6" />} top="Get it on" bottom="Google Play" />
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.2}>
+            <ul className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm font-semibold text-ink-600">
+              {["Free to start", "Bilingual", "Made with love for Indian parents"].map((t, i) => (
+                <li key={t} className="flex items-center gap-2">
+                  {i > 0 ? <span className="text-brand-300" aria-hidden>·</span> : null}
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="text-coral-500" aria-hidden>❤</span>
+                    {t}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </div>
+
+        {/* phone */}
+        <Reveal delay={0.1} className="flex justify-center">
+          <div className="animate-float-slow">
+            <PhoneMock>
+              <WeekScreen
+                greeting="Almost there,"
+                week={40}
+                sizeName="Watermelon"
+                sizeHi="tarbooj"
+                fruit="watermelon"
+                note="Any day now"
+                ritual="Breathe. Aap taiyaar ho. You are ready."
+                nutrition="Light, warm, easy meals — khichdi is kind."
+              />
+            </PhoneMock>
+          </div>
+        </Reveal>
+      </div>
+    </Section>
+  );
+}
