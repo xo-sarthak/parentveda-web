@@ -29,6 +29,12 @@ jobs:
           node-version: 20
           cache: npm
 
+      # Turns on GitHub Pages (Actions source) automatically on the first run,
+      # so no manual Settings → Pages toggle is needed.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - run: npm ci
 
       - name: Build static export
