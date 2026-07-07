@@ -4,6 +4,12 @@
    consistent: warm, calm, bilingual, never clinical.
    ============================================================ */
 
+/* Root-relative links (/guides, /#about …) are rendered as raw <a> tags in the
+   Navbar & Footer, so — unlike next/link — they don't pick up the deploy sub-path
+   automatically. Prefix them with BASE_PATH so they resolve under /parentveda-web
+   on GitHub Pages (and stay unchanged, "", at the root / on a custom domain). */
+import { BASE_PATH } from "@/lib/site";
+
 export type IconKey =
   | "weeks" | "sun" | "lotus" | "map" | "tools" | "father" | "community"
   | "calendar" | "footsteps" | "seed" | "heart" | "check" | "star"
@@ -25,7 +31,7 @@ export const NAV_LINKS = [
 export const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Features", href: "#features" },
-  { label: "Guides", href: "/guides" },
+  { label: "Guides", href: `${BASE_PATH}/guides` },
   { label: "Ask Veda", href: "#ask-veda" },
   { label: "FAQ", href: "#faq" },
 ] as const;
@@ -367,12 +373,12 @@ export const FOOTER_LINKS = [
 /* Footer is shared across the landing page AND /guides pages, so anchors are
    root-relative (/#about) to resolve from any route. */
 export const FOOTER_LINKS = [
-  { label: "About", href: "/#about" },
-  { label: "Features", href: "/#features" },
-  { label: "Guides", href: "/guides" },
-  { label: "Ask Veda", href: "/#ask-veda" },
-  { label: "FAQ", href: "/#faq" },
-  { label: "Join the Waitlist", href: "/#waitlist" },
+  { label: "About", href: `${BASE_PATH}/#about` },
+  { label: "Features", href: `${BASE_PATH}/#features` },
+  { label: "Guides", href: `${BASE_PATH}/guides` },
+  { label: "Ask Veda", href: `${BASE_PATH}/#ask-veda` },
+  { label: "FAQ", href: `${BASE_PATH}/#faq` },
+  { label: "Join the Waitlist", href: `${BASE_PATH}/#waitlist` },
 ] as const;
 
 export const WHATSAPP_HREF = "https://wa.me/910000000000";
