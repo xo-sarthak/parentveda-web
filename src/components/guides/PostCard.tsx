@@ -10,9 +10,11 @@ const THUMB: Record<string, string> = {
 };
 */
 
-/** A linked card for a single guide post — used on the hub and category pages. */
-export default function PostCard({ post, showCategory = true }: { post: GuidePost; showCategory?: boolean }) {
-  const category = getCategory(post.category);
+/** A linked card for a single guide post — used on the hub and category pages.
+    Server component: it resolves its own category (Next memoizes the repeated
+    fetch across a render, so this costs nothing extra per card). */
+export default async function PostCard({ post, showCategory = true }: { post: GuidePost; showCategory?: boolean }) {
+  const category = await getCategory(post.category);
 
   return (
     <article className="lift group h-full overflow-hidden rounded-card bg-surface shadow-card ring-1 ring-brand-500/[0.06]">

@@ -12,9 +12,7 @@ import {
   GUIDES_BASE,
   GUIDES_TAGLINE,
   categoryPath,
-  countByCategory,
-  getFeaturedPosts,
-  getHeroPost,
+  getAllPosts,
 } from "@/lib/guides";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 import { TINT } from "@/lib/ui";
@@ -37,9 +35,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GuidesHub() {
-  const hero = getHeroPost();
-  const latest = getFeaturedPosts(7).filter((p) => p.slug !== hero.slug).slice(0, 6);
+/* Live content: re-render at most once a minute so a Directus publish shows
+   up without a redeploy. */
+export const revalidate = 60;
+
+export default async function GuidesHub() {
+  // One posts read serves the lead story, the latest grid and the per-category
+  // counts; the two reads below are independent, so run them together.
+  const [posts, categories] = await Promise.all([getAllPosts(), CATEGORIES()]);
+
+  const hero = posts[0];
+  const latest = posts.slice(1, 7);
+
+  const counts = posts.reduce<Record<string, number>>((acc, p) => {
+    acc[p.category] = (acc[p.category] ?? 0) + 1;
+    return acc;
+  }, {});
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -68,9 +79,11 @@ export default function GuidesHub() {
       </header>
 
       {/* The lead story */}
-      <section className="mt-10" aria-label="Featured guide">
-        <FeaturedPost post={hero} />
-      </section>
+      {hero ? (
+        <section className="mt-10" aria-label="Featured guide">
+          <FeaturedPost post={hero} />
+        </section>
+      ) : null}
 
       {/* Stage-aware shelf — the axis only a pregnancy library has */}
       <section className="mt-16" aria-labelledby="stage-heading">
@@ -83,16 +96,18 @@ export default function GuidesHub() {
       </section>
 
       {/* Latest */}
-      <section className="mt-16" aria-labelledby="latest-heading">
-        <h2 id="latest-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
-          Latest reads
-        </h2>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {latest.map((p) => (
-            <PostCard key={p.slug} post={p} />
-          ))}
-        </div>
-      </section>
+      {latest.length ? (
+        <section className="mt-16" aria-labelledby="latest-heading">
+          <h2 id="latest-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
+            Latest reads
+          </h2>
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {latest.map((p) => (
+              <PostCard key={`${p.category}/${p.slug}`} post={p} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* Compact category index */}
       <section className="mt-16" aria-labelledby="categories-heading">
@@ -100,8 +115,8 @@ export default function GuidesHub() {
           Browse by category
         </h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {CATEGORIES.map((c) => {
-            const count = countByCategory(c.slug);
+          {categories.map((c) => {
+            const count = counts[c.slug] ?? 0;
             return (
               <Link
                 key={c.slug}
@@ -124,6 +139,13 @@ export default function GuidesHub() {
           })}
         </div>
       </section>
+
+      {/* Nothing published yet — better an honest, indexable page than a broken one. */}
+      {!posts.length ? (
+        <p className="mt-10 rounded-card bg-mist/60 px-5 py-8 text-center text-ink-500 ring-1 ring-brand-500/10">
+          Gentle new pieces are on their way.
+        </p>
+      ) : null}
 
       <JsonLd data={jsonLd} />
     </Container>

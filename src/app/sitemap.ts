@@ -8,27 +8,30 @@ import {
   postPath,
 } from "@/lib/guides";
 
-// Required for `output: 'export'` — emit a static sitemap.xml at build time.
-export const dynamic = "force-static";
+/* Live content: regenerate on the same cadence as the guide pages, so a post
+   published in Directus is submitted to search engines within the minute.
+   (Was `dynamic = "force-static"` for the `output: 'export'` build.) */
+export const revalidate = 60;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const [posts, categories] = await Promise.all([getAllPosts(), CATEGORIES()]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}${GUIDES_BASE}`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
   ];
 
-  const categoryRoutes: MetadataRoute.Sitemap = CATEGORIES.map((c) => ({
+  const categoryRoutes: MetadataRoute.Sitemap = categories.map((c) => ({
     url: `${SITE_URL}${categoryPath(c.slug)}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
 
-  const postRoutes: MetadataRoute.Sitemap = getAllPosts().map((p) => ({
-    url: `${SITE_URL}${postPath(p.category, p.slug)}`,
-    lastModified: p.updated ?? p.date,
+  const postRoutes: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${SITE_URL}${p.canonicalPath ?? postPath(p.category, p.slug)}`,
+    lastModified: p.updated ?? p.date ?? now,
     changeFrequency: "monthly",
     priority: 0.8,
   }));

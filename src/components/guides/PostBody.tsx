@@ -1,75 +1,114 @@
-import type { Block } from "@/lib/guides";
+import Markdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 
-/** Renders a post's structured content blocks with calm, readable prose. */
-export default function PostBody({ blocks }: { blocks: Block[] }) {
+/**
+ * Renders a post's Markdown body with calm, readable prose.
+ *
+ * Content is authored in Directus as Markdown (it was a Block[] union when
+ * posts were hardcoded). The component map below reproduces the exact
+ * typography the Block renderer had, so nothing shifted visually:
+ *   h2 → Fraunces display heading      blockquote → serif pull-quote
+ *   ul → coral dot bullets             ol → numbered brand chips
+ * Plus GFM tables/strikethrough, and the callout convention documented below.
+ *
+ * Markdown is authored by our own team behind Directus auth, and
+ * react-markdown does not render raw HTML unless rehype-raw is added — which
+ * it deliberately is not. So there is no injection surface here.
+ */
+
+/* The old Block[] union had a "callout" type — the soft lavender panel used
+   for the medical disclaimer. Markdown has no such node, so a blockquote whose
+   text starts with "Note:" renders as the callout. Everything else stays a
+   pull-quote. */
+const CALLOUT_PREFIX = /^note:\s*/i;
+
+function blockText(node: React.ReactNode): string {
+  if (typeof node === "string") return node;
+  if (Array.isArray(node)) return node.map(blockText).join("");
+  if (node && typeof node === "object" && "props" in node) {
+    return blockText((node as { props: { children?: React.ReactNode } }).props.children);
+  }
+  return "";
+}
+
+const components: Components = {
+  h2: ({ children }) => (
+    <h2 className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-[-0.01em] text-ink-900">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="mt-2 font-heading text-[1.15rem] font-bold tracking-tight text-ink-900">
+      {children}
+    </h3>
+  ),
+  p: ({ children }) => (
+    <p className="text-pretty text-[1.05rem] leading-relaxed text-ink-700">{children}</p>
+  ),
+  ul: ({ children }) => <ul className="flex flex-col gap-2.5">{children}</ul>,
+  ol: ({ children }) => <ol className="flex flex-col gap-3">{children}</ol>,
+  // One markup shape for both list kinds; globals.css styles .md-marker as a
+  // coral dot inside ul and a numbered brand chip inside ol (CSS counter),
+  // reproducing exactly what the old Block renderer drew.
+  li: ({ children }) => (
+    <li className="flex gap-3 text-[1.02rem] leading-relaxed text-ink-700">
+      <span className="md-marker" aria-hidden />
+      <span className="min-w-0 flex-1">{children}</span>
+    </li>
+  ),
+  blockquote: ({ children }) => {
+    const text = blockText(children).trim();
+    if (CALLOUT_PREFIX.test(text)) {
+      return (
+        <p className="rounded-2xl bg-mist/70 px-5 py-4 text-[0.92rem] leading-relaxed text-ink-600 ring-1 ring-brand-500/10">
+          {text.replace(CALLOUT_PREFIX, "")}
+        </p>
+      );
+    }
+    return (
+      <blockquote className="border-l-4 border-brand-200 pl-5 font-display text-xl italic leading-relaxed text-ink-700">
+        {children}
+      </blockquote>
+    );
+  },
+  a: ({ children, href }) => (
+    <a
+      href={href}
+      className="font-medium text-brand-600 underline decoration-brand-200 underline-offset-4 transition-colors hover:text-brand-700"
+      {...(href?.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {children}
+    </a>
+  ),
+  strong: ({ children }) => <strong className="font-bold text-ink-900">{children}</strong>,
+  em: ({ children }) => <em className="italic">{children}</em>,
+  hr: () => <hr className="my-2 border-0 border-t border-brand-500/10" />,
+  code: ({ children }) => (
+    <code className="rounded-md bg-mist px-1.5 py-0.5 font-mono text-[0.88em] text-brand-700">
+      {children}
+    </code>
+  ),
+  table: ({ children }) => (
+    <div className="overflow-x-auto rounded-2xl ring-1 ring-brand-500/10">
+      <table className="w-full border-collapse text-left text-[0.95rem]">{children}</table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="border-b border-brand-500/10 bg-mist/60 px-4 py-2.5 font-heading text-[0.8rem] font-bold uppercase tracking-wide text-ink-700">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border-b border-brand-500/[0.06] px-4 py-2.5 text-ink-700">{children}</td>
+  ),
+};
+
+export default function PostBody({ body }: { body: string }) {
   return (
-    <div className="flex flex-col gap-5">
-      {blocks.map((b, i) => {
-        switch (b.type) {
-          case "h2":
-            return (
-              <h2 key={i} className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-[-0.01em] text-ink-900">
-                {b.text}
-              </h2>
-            );
-          case "p":
-            // The opening paragraph reads as an editorial lead — a touch
-            // larger, with a serif drop cap.
-            if (i === 0) {
-              return (
-                <p
-                  key={i}
-                  className="text-pretty text-[1.12rem] leading-relaxed text-ink-700 first-letter:float-left first-letter:mr-2.5 first-letter:font-display first-letter:text-[3.2rem] first-letter:font-medium first-letter:leading-[0.85] first-letter:text-brand-600"
-                >
-                  {b.text}
-                </p>
-              );
-            }
-            return (
-              <p key={i} className="text-pretty text-[1.05rem] leading-relaxed text-ink-700">
-                {b.text}
-              </p>
-            );
-          case "ul":
-            return (
-              <ul key={i} className="flex flex-col gap-2.5">
-                {b.items.map((it, j) => (
-                  <li key={j} className="flex gap-3 text-[1.02rem] leading-relaxed text-ink-700">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-coral-400" aria-hidden />
-                    {it}
-                  </li>
-                ))}
-              </ul>
-            );
-          case "ol":
-            return (
-              <ol key={i} className="flex flex-col gap-3">
-                {b.items.map((it, j) => (
-                  <li key={j} className="flex gap-3 text-[1.02rem] leading-relaxed text-ink-700">
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-600">
-                      {j + 1}
-                    </span>
-                    {it}
-                  </li>
-                ))}
-              </ol>
-            );
-          case "quote":
-            return (
-              <blockquote key={i} className="border-l-4 border-brand-200 pl-5 font-display text-xl italic leading-relaxed text-ink-700">
-                {b.text}
-              </blockquote>
-            );
-          case "callout":
-            return (
-              <p key={i} className="rounded-2xl bg-mist/70 px-5 py-4 text-[0.92rem] leading-relaxed text-ink-600 ring-1 ring-brand-500/10">
-                {b.text}
-              </p>
-            );
-          default:
-            return null;
-        }
-      })}
+    <div className="md-body flex flex-col gap-5">
+      <Markdown remarkPlugins={[remarkGfm]} components={components}>
+        {body}
+      </Markdown>
     </div>
   );
 }

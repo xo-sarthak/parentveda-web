@@ -1,11 +1,21 @@
 name: Deploy to GitHub Pages
 
-# Builds the static export and publishes it to GitHub Pages on every push.
-# In the repo: Settings → Pages → "Build and deployment" → Source = "GitHub Actions".
+# PRESERVED, BUT DISABLED — the site no longer builds a static export.
+#
+# Guides now read live from Supabase, which needs a Node runtime for ISR, so
+# `output: 'export'` was removed from next.config.ts and `npm run build` no
+# longer emits ./out — the artifact this workflow uploads. Left intact (and
+# runnable by hand via "Run workflow") rather than deleted.
+#
+# The push trigger is commented out so this doesn't fail on every commit.
+# To re-enable: restore `output: 'export'` in next.config.ts, then uncomment
+# the push trigger below. Note guide content would freeze at build time.
+#
+# The live deploy target is Vercel.
 
 on:
-  push:
-    branches: [main, master]
+  # push:
+  #   branches: [main, master]
   workflow_dispatch:
 
 permissions:

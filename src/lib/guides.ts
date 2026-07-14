@@ -1,14 +1,22 @@
 /* ============================================================
    ParentVeda — Guides (the SEO content hub).
 
-   Each category and each post becomes its own statically-generated,
-   individually-rankable page under /guides/<category>/<slug>.
+   Content now lives in the shared Supabase backend (authored in Directus),
+   not in this file. Publish in Directus → the site shows it.
 
-   This file is the single source of truth for the hub's content and
-   its SEO metadata. Real content will replace these samples; the
-   structure (categories, slugs, fields) is what matters for ranking.
+   Every helper here is SERVER-ONLY and async. Never call these from a
+   client component: guide content must land in the crawlable HTML, so all
+   fetching happens in server components at prerender / ISR time.
+
+   The shapes below (GuidePost, GuideCategory) are unchanged from the
+   hardcoded era EXCEPT `body`, which is now Markdown text rather than a
+   Block[] — see PostBody.tsx. Keeping the shapes stable means the
+   renderers, JSON-LD and metadata all work untouched.
+
+   Reads are gated by RLS to status='published'; the anon key is public.
    ============================================================ */
 
+import { supabase } from "@/lib/supabase";
 import type { IconKey } from "@/lib/content";
 import type { Tint } from "@/lib/ui";
 
@@ -36,69 +44,6 @@ export type GuideCategory = {
   tint: Tint;
 };
 
-export const CATEGORIES: GuideCategory[] = [
-  {
-    slug: "article",
-    name: "Articles",
-    singular: "Article",
-    tagline: "Stage-aware, gentle reads for every week.",
-    description:
-      "Calm, evidence-informed pregnancy and parenting articles — nutrition, symptoms, trimesters and more, in plain English and Hinglish.",
-    icon: "book",
-    tint: "brand",
-  },
-  {
-    slug: "research-summary",
-    name: "Research Summaries",
-    singular: "Research Summary",
-    tagline: "The science, gently distilled.",
-    description:
-      "Plain-language summaries of pregnancy and parenting research — what the studies actually say, and what it means for you.",
-    icon: "shield",
-    tint: "earth",
-  },
-  {
-    slug: "book-summary",
-    name: "Book Summaries",
-    singular: "Book Summary",
-    tagline: "Big pregnancy books, in a calm few minutes.",
-    description:
-      "Short, honest summaries of the best-loved pregnancy and parenting books — key takeaways you can use today.",
-    icon: "star",
-    tint: "coral",
-  },
-  {
-    slug: "recipe",
-    name: "Recipes",
-    singular: "Recipe",
-    tagline: "Trimester-friendly food and dadi-maa ke nuskhe.",
-    description:
-      "Simple, nourishing pregnancy recipes and traditional Indian nushkhe — trimester-friendly, easy to digest and made with love.",
-    icon: "bowl",
-    tint: "earth",
-  },
-  {
-    slug: "parenting-faq",
-    name: "Parenting FAQ",
-    singular: "FAQ",
-    tagline: "Clear, calm answers to the questions every parent asks.",
-    description:
-      "Honest, evidence-informed answers to common pregnancy and parenting questions — the “Can I…?” and “Is it safe…?” worries, gently settled.",
-    icon: "chat",
-    tint: "brand",
-  },
-];
-
-/* ---------------- Content blocks ---------------- */
-
-export type Block =
-  | { type: "p"; text: string }
-  | { type: "h2"; text: string }
-  | { type: "ul"; items: string[] }
-  | { type: "ol"; items: string[] }
-  | { type: "quote"; text: string }
-  | { type: "callout"; text: string };
-
 /* ---------------- Posts ---------------- */
 
 export type RecipeMeta = {
@@ -121,308 +66,210 @@ export type GuidePost = {
   readingTime: string;
   author: string;
   tags: string[];
-  body: Block[];
+  body: string; // MARKDOWN (was Block[] when content was hardcoded)
   recipe?: RecipeMeta; // recipe category
   source?: { label: string; href?: string }; // research / book citation
   bookMeta?: { title: string; author: string }; // book-summary
+  /* Optional per-post SEO overrides, authored in Directus. */
+  metaTitle?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
+  canonicalPath?: string;
+  /* Stage metadata used by the trimester shelf. */
+  trimester?: string;
+  weekTag?: string;
 };
 
-const DISCLAIMER =
-  "ParentVeda offers gentle, evidence-informed guidance — not medical advice. Always check with your doctor for decisions about your pregnancy.";
+/* ---------------- Row types + mapping ---------------- */
 
-export const POSTS: GuidePost[] = [
-  /* ---------- Articles ---------- */
-  {
-    slug: "eating-for-two-pregnancy-nutrition-myth",
-    category: "article",
-    title: "Eating for two? Why pregnancy nutrition isn't about double portions",
-    description:
-      "“Eating for two” is a myth. Here's what your body actually needs each trimester — calm, practical pregnancy nutrition without the pressure.",
-    excerpt:
-      "The phrase sounds caring, but it leads to a lot of unnecessary worry. Here's what real nourishment looks like, trimester by trimester.",
-    date: "2026-05-12",
-    updated: "2026-06-18",
-    readingTime: "5 min read",
-    author: "Team ParentVeda",
-    tags: ["nutrition", "first trimester", "weight"],
-    body: [
-      { type: "p", text: "“You're eating for two now!” is one of the first things many expecting mothers hear. It's said with love — but it quietly suggests you should be eating twice as much. You don't." },
-      { type: "h2", text: "How much extra do you really need?" },
-      { type: "p", text: "For most of pregnancy, the extra energy your body needs is small — often nothing in the first trimester, and only a modest amount in the second and third. Think of it as a little more, not double." },
-      { type: "ul", items: [
-        "First trimester: usually no extra calories needed — focus on quality, not quantity.",
-        "Second trimester: a small increase, roughly an extra snack a day.",
-        "Third trimester: a little more again, as baby grows fastest.",
-      ] },
-      { type: "h2", text: "What actually matters" },
-      { type: "p", text: "Nourishment matters far more than volume. Iron (palak, dal, gud), calcium (doodh, dahi, ragi, til), folate (leafy greens, citrus) and protein quietly do the heavy lifting. Small, frequent, warm meals are kinder on a queasy stomach than three large ones." },
-      { type: "callout", text: DISCLAIMER },
-    ],
-  },
-  {
-    slug: "understanding-baby-movements-during-pregnancy",
-    category: "article",
-    title: "Understanding your baby's movements: what kicks and flutters mean",
-    description:
-      "When do baby kicks start, what's normal, and when to call your doctor? A calm guide to fetal movement through the second and third trimesters.",
-    excerpt:
-      "Those first flutters are unforgettable — and later, your baby's pattern becomes a gentle daily reassurance. Here's what to know.",
-    date: "2026-05-20",
-    readingTime: "4 min read",
-    author: "Team ParentVeda",
-    tags: ["second trimester", "third trimester", "baby movements"],
-    body: [
-      { type: "p", text: "Somewhere around weeks 18–22, many mothers feel the first flutters — often mistaken for gas or a tiny bubble. These early movements are called quickening." },
-      { type: "h2", text: "How movement changes" },
-      { type: "p", text: "As weeks pass, flutters become kicks, rolls and hiccups. By the third trimester, your baby settles into a pattern that's unique to them — some are quiet in the morning and lively at night." },
-      { type: "h2", text: "Getting to know the pattern" },
-      { type: "p", text: "There's no single “correct” number of kicks. What matters is your baby's own normal. Many mothers notice movement most when resting on their side after a meal." },
-      { type: "callout", text: "If you ever notice a clear reduction or change in your baby's usual movements, contact your doctor or hospital right away — it's always okay to check. " + DISCLAIMER },
-    ],
-  },
+type CategoryRow = {
+  slug: CategorySlug;
+  name: string;
+  singular: string;
+  tagline: string;
+  description: string;
+  icon: IconKey;
+  tint: Tint;
+  sort: number | null;
+};
 
-  /* ---------- Research Summaries ---------- */
-  {
-    slug: "folic-acid-pregnancy-research-summary",
-    category: "research-summary",
-    title: "Folic acid before and during pregnancy: what the evidence says",
-    description:
-      "A plain-language summary of the research on folic acid in pregnancy — why 400 mcg daily is recommended and how it lowers neural tube defect risk.",
-    excerpt:
-      "One of the most well-established findings in prenatal care, in plain language: what folic acid does and why timing matters.",
-    date: "2026-04-28",
-    updated: "2026-06-10",
-    readingTime: "5 min read",
-    author: "Team ParentVeda",
-    tags: ["nutrition", "supplements", "first trimester"],
-    source: {
-      label: "Based on WHO and national health guidance on periconceptional folic acid supplementation.",
-    },
-    body: [
-      { type: "p", text: "Among all prenatal advice, the case for folic acid is one of the strongest. Decades of research link adequate folate around conception with a markedly lower risk of neural tube defects such as spina bifida." },
-      { type: "h2", text: "What the studies show" },
-      { type: "ul", items: [
-        "Folate is essential for the baby's neural tube, which forms very early — often before a pregnancy is even confirmed.",
-        "Major health bodies recommend roughly 400 micrograms of folic acid daily for those planning a pregnancy and through early pregnancy.",
-        "Some people — for example with certain medical histories — may be advised a higher dose by their doctor.",
-      ] },
-      { type: "h2", text: "Why timing matters" },
-      { type: "p", text: "Because the neural tube closes in the first weeks, starting before conception (or as early as possible) is what makes folic acid so effective. Food sources like leafy greens, dals and citrus help too, but a supplement is the dependable way to hit the target." },
-      { type: "callout", text: "This is a general summary, not a prescription. " + DISCLAIMER },
-    ],
-  },
-  {
-    slug: "prenatal-music-and-baby-research-summary",
-    category: "research-summary",
-    title: "Does prenatal music affect your baby? An honest look at the research",
-    description:
-      "Garbh Sanskar and prenatal music are deeply loved traditions. Here's a calm, honest summary of what the science does — and doesn't — show.",
-    excerpt:
-      "Music in pregnancy is a beautiful ritual. We look at what research can actually tell us, without overclaiming.",
-    date: "2026-05-02",
-    readingTime: "4 min read",
-    author: "Team ParentVeda",
-    tags: ["garbh sanskar", "wellbeing", "third trimester"],
-    source: {
-      label: "Summarised from peer-reviewed studies on fetal hearing and maternal relaxation; evidence is still emerging.",
-    },
-    body: [
-      { type: "p", text: "From the second trimester, your baby can hear muffled sounds — your voice, your heartbeat, and the world around you. It's no surprise that traditions like Garbh Sanskar place music at the centre of pregnancy." },
-      { type: "h2", text: "What we can say" },
-      { type: "ul", items: [
-        "Babies respond to sound in the womb — heart rate and movement can change with music or voices.",
-        "Calm music can lower the mother's stress, and a calmer mother is good for both of you.",
-      ] },
-      { type: "h2", text: "What we can't claim" },
-      { type: "p", text: "Strong, long-term claims — that a particular raga makes a baby smarter, for instance — aren't well supported yet. The honest takeaway: enjoy music because it soothes you and bonds you, not because it's a performance metric." },
-      { type: "callout", text: DISCLAIMER },
-    ],
-  },
+type PostRow = {
+  category: CategorySlug;
+  slug: string;
+  title: string;
+  description: string | null;
+  excerpt: string | null;
+  body: string | null;
+  author: string | null;
+  reading_time: string | null;
+  tags: string[] | null;
+  trimester: string | null;
+  week_tag: string | null;
+  recipe: RecipeMeta | null;
+  source: { label: string; href?: string } | null;
+  book_meta: { title: string; author: string } | null;
+  meta_title: string | null;
+  og_image: string | null;
+  og_image_alt: string | null;
+  canonical_path: string | null;
+  published_at: string | null;
+  updated_at: string | null;
+};
 
-  /* ---------- Book Summaries ---------- */
-  {
-    slug: "what-to-expect-when-youre-expecting-summary",
-    category: "book-summary",
-    title: "What to Expect When You're Expecting — a calm summary",
-    description:
-      "A short, honest summary of 'What to Expect When You're Expecting' — the key takeaways from the classic month-by-month pregnancy guide.",
-    excerpt:
-      "The famous month-by-month companion, distilled to its most useful ideas — minus the information overload.",
-    date: "2026-04-15",
-    readingTime: "6 min read",
-    author: "Team ParentVeda",
-    tags: ["books", "pregnancy guide"],
-    bookMeta: { title: "What to Expect When You're Expecting", author: "Heidi Murkoff" },
-    body: [
-      { type: "p", text: "Heidi Murkoff's classic has guided generations of parents with its month-by-month, question-and-answer style. Here's the gentle gist." },
-      { type: "h2", text: "Key takeaways" },
-      { type: "ul", items: [
-        "Pregnancy unfolds in predictable stages — knowing roughly what each month brings reduces a lot of anxiety.",
-        "Most symptoms are common and pass; the book's reassurance is its real value.",
-        "Preparation — questions for your doctor, a birth plan, a hospital bag — turns worry into action.",
-      ] },
-      { type: "h2", text: "Our calm note" },
-      { type: "p", text: "The book is thorough, which can occasionally tip into overwhelm. Take what soothes you, skip what spikes worry, and remember that a guide is a companion — not a checklist to be graded on." },
-      { type: "callout", text: DISCLAIMER },
-    ],
-  },
-  {
-    slug: "ina-mays-guide-to-childbirth-summary",
-    category: "book-summary",
-    title: "Ina May's Guide to Childbirth — key takeaways",
-    description:
-      "A short summary of Ina May Gaskin's 'Guide to Childbirth' — what it teaches about trusting your body, relaxation and birth without fear.",
-    excerpt:
-      "A beloved book on confident, calmer birth. Here are its core ideas, distilled.",
-    date: "2026-04-22",
-    readingTime: "5 min read",
-    author: "Team ParentVeda",
-    tags: ["books", "birth", "third trimester"],
-    bookMeta: { title: "Ina May's Guide to Childbirth", author: "Ina May Gaskin" },
-    body: [
-      { type: "p", text: "Ina May Gaskin's book is famous for one quietly radical idea: that fear and tension make birth harder, and calm confidence can make it gentler." },
-      { type: "h2", text: "Key takeaways" },
-      { type: "ul", items: [
-        "Relaxation matters — a tense body works against itself in labour.",
-        "Birth stories, told positively, can replace fear with confidence.",
-        "Your support and surroundings shape your experience more than most expect.",
-      ] },
-      { type: "h2", text: "Our calm note" },
-      { type: "p", text: "Whatever birth you plan or experience, the spirit of the book travels well: prepare, breathe, trust your body, and surround yourself with calm. There's no single 'right' way to bring a baby into the world." },
-      { type: "callout", text: DISCLAIMER },
-    ],
-  },
+const POST_COLUMNS =
+  "category, slug, title, description, excerpt, body, author, reading_time, tags, " +
+  "trimester, week_tag, recipe, source, book_meta, meta_title, og_image, og_image_alt, " +
+  "canonical_path, published_at, updated_at";
 
-  /* ---------- Recipes ---------- */
-  {
-    slug: "moong-dal-khichdi-pregnancy-recipe",
-    category: "recipe",
-    title: "Moong dal khichdi for pregnancy — gentle, iron-rich comfort",
-    description:
-      "An easy moong dal khichdi recipe for pregnancy — warm, light, easy to digest and quietly nourishing. Ready in about 30 minutes.",
-    excerpt:
-      "Comfort in a single bowl: soft, warming and easy on a tired tummy. A trimester-three favourite.",
-    date: "2026-05-08",
-    readingTime: "3 min read",
-    author: "Team ParentVeda",
-    tags: ["recipe", "third trimester", "comfort food"],
-    recipe: {
-      prepTime: "10 min",
-      cookTime: "20 min",
-      totalTime: "30 min",
-      servings: "Serves 2",
-      ingredients: [
-        "1/2 cup rice, rinsed",
-        "1/2 cup yellow moong dal, rinsed",
-        "1 tbsp ghee",
-        "1/2 tsp cumin (jeera) seeds",
-        "A pinch of hing (asafoetida)",
-        "1/2 tsp turmeric (haldi)",
-        "1-inch ginger, finely chopped",
-        "3 cups water (more for a softer khichdi)",
-        "Salt to taste",
-      ],
-      steps: [
-        "Soak the rice and moong dal together for 10 minutes while you prep.",
-        "Heat ghee in a pressure cooker. Add cumin and hing; let them sizzle.",
-        "Add ginger and turmeric, then the drained rice and dal. Stir for a minute.",
-        "Add water and salt. Pressure cook for 3–4 whistles until very soft.",
-        "Let the pressure release naturally. Stir, adjust water to a soft consistency, and serve warm with a little extra ghee and curd.",
-      ],
-    },
-    body: [
-      { type: "p", text: "Khichdi is the gentlest of foods — soft, warm and easy to digest, which makes it perfect when your appetite is small or your tummy is tender. Moong dal adds protein and a little iron without feeling heavy." },
-      { type: "callout", text: "Tip: a spoon of ghee and a side of curd make it more nourishing and even easier to digest. " + DISCLAIMER },
-    ],
-  },
-  {
-    slug: "lemon-ginger-water-pregnancy-nausea-recipe",
-    category: "recipe",
-    title: "Lemon-ginger morning water for pregnancy nausea",
-    description:
-      "A simple lemon-ginger water to ease early-pregnancy nausea (ji-michli). A gentle 5-minute morning settler — sip slowly.",
-    excerpt:
-      "A calming morning settler for queasy early-trimester days. Five minutes, three ingredients.",
-    date: "2026-05-15",
-    readingTime: "2 min read",
-    author: "Team ParentVeda",
-    tags: ["nushkhe", "first trimester", "nausea"],
-    recipe: {
-      prepTime: "5 min",
-      cookTime: "0 min",
-      totalTime: "5 min",
-      servings: "1 glass",
-      ingredients: [
-        "1 cup warm water",
-        "1/2-inch fresh ginger, lightly crushed",
-        "1 tsp lemon juice",
-        "1/2 tsp honey (optional)",
-      ],
-      steps: [
-        "Steep the crushed ginger in warm water for 3–4 minutes.",
-        "Strain, then stir in the lemon juice (and honey if using).",
-        "Sip slowly — small sips settle a queasy stomach better than gulping.",
-      ],
-    },
-    body: [
-      { type: "p", text: "Morning ji-michli (nausea) is one of the most common early-pregnancy companions. Ginger has a long, well-loved reputation for soothing it, and a little lemon makes it easier to sip." },
-      { type: "callout", text: "Keep it gentle — a small glass, sipped slowly. If nausea is severe or you can't keep fluids down, speak to your doctor. " + DISCLAIMER },
-    ],
-  },
+/** ISO timestamp → the plain YYYY-MM-DD the UI and JSON-LD already expect. */
+function toDate(ts: string | null): string {
+  return ts ? ts.slice(0, 10) : "";
+}
 
-  /* ---------- Parenting FAQ ---------- */
-  {
-    slug: "can-i-eat-papaya-during-pregnancy",
-    category: "parenting-faq",
-    title: "Can I eat papaya during pregnancy?",
-    description:
-      "Is papaya safe in pregnancy? The short answer: ripe papaya in small amounts is usually fine; raw or unripe papaya is best avoided. Here's why.",
-    excerpt:
-      "The short answer, and the reasoning behind the popular worry — ripe vs. raw papaya in pregnancy.",
-    date: "2026-05-25",
-    readingTime: "3 min read",
-    author: "Team ParentVeda",
-    tags: ["food safety", "nutrition", "first trimester"],
-    body: [
-      { type: "p", text: "The short answer: ripe papaya in small amounts is usually considered fine, while raw or unripe papaya is the one traditionally advised against." },
-      { type: "h2", text: "Why the difference?" },
-      { type: "p", text: "Unripe (green) papaya contains more of a substance called latex, which is the source of the long-standing caution. Fully ripe papaya has very little of it, and also offers vitamins and fibre." },
-      { type: "ul", items: [
-        "Ripe papaya, in moderation: generally considered okay for most pregnancies.",
-        "Raw / unripe papaya: best avoided, especially as a large or regular portion.",
-      ] },
-      { type: "callout", text: "Every pregnancy is different — if you have a specific condition or any doubt, check with your doctor. " + DISCLAIMER },
-    ],
-  },
-  {
-    slug: "is-it-safe-to-sleep-on-your-back-during-pregnancy",
-    category: "parenting-faq",
-    title: "Is it safe to sleep on your back during pregnancy?",
-    description:
-      "Back-sleeping in later pregnancy can feel uncomfortable for a reason. Why side-sleeping (especially the left) is usually recommended from the second half.",
-    excerpt:
-      "Why side-sleeping is usually recommended later in pregnancy — and how to make it comfortable.",
-    date: "2026-06-01",
-    readingTime: "3 min read",
-    author: "Team ParentVeda",
-    tags: ["sleep", "second trimester", "third trimester"],
-    body: [
-      { type: "p", text: "In early pregnancy, sleep in whatever position feels comfortable. From around the middle of pregnancy onward, many doctors suggest favouring your side rather than your back." },
-      { type: "h2", text: "Why side-sleeping?" },
-      { type: "p", text: "As your bump grows, lying flat on your back can press on a major blood vessel and feel uncomfortable or light-headed. Sleeping on your side — the left is often suggested — keeps blood flowing comfortably to you and your baby." },
-      { type: "h2", text: "Making it comfortable" },
-      { type: "ul", items: [
-        "Tuck a pillow between your knees and under your bump.",
-        "If you wake on your back, simply roll back to your side — no need to worry.",
-      ] },
-      { type: "callout", text: DISCLAIMER },
-    ],
-  },
-];
+function toPost(r: PostRow): GuidePost {
+  return {
+    slug: r.slug,
+    category: r.category,
+    title: r.title,
+    description: r.description ?? "",
+    excerpt: r.excerpt ?? "",
+    date: toDate(r.published_at),
+    updated: r.updated_at ? toDate(r.updated_at) : undefined,
+    readingTime: r.reading_time ?? "",
+    author: r.author ?? "Team ParentVeda",
+    tags: r.tags ?? [],
+    body: r.body ?? "",
+    recipe: r.recipe ?? undefined,
+    source: r.source ?? undefined,
+    bookMeta: r.book_meta ?? undefined,
+    metaTitle: r.meta_title ?? undefined,
+    ogImage: r.og_image ?? undefined,
+    ogImageAlt: r.og_image_alt ?? undefined,
+    canonicalPath: r.canonical_path ?? undefined,
+    trimester: r.trimester ?? undefined,
+    weekTag: r.week_tag ?? undefined,
+  };
+}
+
+function toCategory(r: CategoryRow): GuideCategory {
+  return {
+    slug: r.slug,
+    name: r.name,
+    singular: r.singular,
+    tagline: r.tagline,
+    description: r.description,
+    icon: r.icon,
+    tint: r.tint,
+  };
+}
+
+/* A published post must be renderable and reachable. A row missing its slug
+   or title would produce a broken URL or an empty <h1>, so drop it rather
+   than emit a page that hurts us in search. */
+function isRenderable(r: PostRow): boolean {
+  return Boolean(r.slug && r.title && r.category);
+}
+
+/* ---------------- Data access (async) ---------------- */
+
+/** All published posts, newest first. */
+export async function getAllPosts(): Promise<GuidePost[]> {
+  const { data, error } = await supabase
+    .from("content_posts")
+    .select(POST_COLUMNS)
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+
+  if (error) throw new Error(`Supabase: failed to load posts — ${error.message}`);
+  return ((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost);
+}
+
+/** All categories, in their authored sort order. */
+export async function getCategories(): Promise<GuideCategory[]> {
+  const { data, error } = await supabase
+    .from("content_categories")
+    .select("slug, name, singular, tagline, description, icon, tint, sort")
+    .order("sort", { ascending: true });
+
+  if (error) throw new Error(`Supabase: failed to load categories — ${error.message}`);
+  return ((data ?? []) as unknown as CategoryRow[]).map(toCategory);
+}
+
+/**
+ * PRESERVED NAME — was a module-level array of literals; the hub, header and
+ * sitemap all import it. Now an async fetch. Call sites must await.
+ */
+export const CATEGORIES = getCategories;
+
+export async function getCategory(slug: string): Promise<GuideCategory | undefined> {
+  const { data, error } = await supabase
+    .from("content_categories")
+    .select("slug, name, singular, tagline, description, icon, tint, sort")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) throw new Error(`Supabase: failed to load category ${slug} — ${error.message}`);
+  return data ? toCategory(data as unknown as CategoryRow) : undefined;
+}
+
+export async function getPostsByCategory(slug: string): Promise<GuidePost[]> {
+  const { data, error } = await supabase
+    .from("content_posts")
+    .select(POST_COLUMNS)
+    .eq("status", "published")
+    .eq("category", slug)
+    .order("published_at", { ascending: false });
+
+  if (error) throw new Error(`Supabase: failed to load ${slug} posts — ${error.message}`);
+  return ((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost);
+}
+
+export async function getPost(category: string, slug: string): Promise<GuidePost | undefined> {
+  const { data, error } = await supabase
+    .from("content_posts")
+    .select(POST_COLUMNS)
+    .eq("status", "published")
+    .eq("category", category)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) throw new Error(`Supabase: failed to load ${category}/${slug} — ${error.message}`);
+  return data && isRenderable(data as unknown as PostRow) ? toPost(data as unknown as PostRow) : undefined;
+}
+
+/** A few recent posts for the hub landing. */
+export async function getFeaturedPosts(limit = 6): Promise<GuidePost[]> {
+  const { data, error } = await supabase
+    .from("content_posts")
+    .select(POST_COLUMNS)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(`Supabase: failed to load featured posts — ${error.message}`);
+  return ((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost);
+}
+
+/** The single lead story for the hub's editorial opener (newest post). */
+export async function getHeroPost(): Promise<GuidePost | undefined> {
+  return (await getFeaturedPosts(1))[0];
+}
+
+export async function countByCategory(slug: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("content_posts")
+    .select("slug", { count: "exact", head: true })
+    .eq("status", "published")
+    .eq("category", slug);
+
+  if (error) throw new Error(`Supabase: failed to count ${slug} — ${error.message}`);
+  return count ?? 0;
+}
 
 /* ---------------- Trimesters ----------------
    Pregnancy content has an organizing axis nothing else has: the stage the
-   reader is in. Posts opt in via their existing tags ("first trimester" …). */
+   reader is in. Posts opt in via the `trimester` column, falling back to
+   their stage tags ("first trimester" …) for rows Directus hasn't set it on. */
 
 export type TrimesterKey = "first" | "second" | "third";
 
@@ -458,44 +305,20 @@ export const TRIMESTERS: Trimester[] = [
   },
 ];
 
-export function getPostsByTrimester(key: TrimesterKey, limit = 4): GuidePost[] {
+export async function getPostsByTrimester(key: TrimesterKey, limit = 4): Promise<GuidePost[]> {
+  // Filtered in JS rather than SQL: it reuses the single cached all-posts read
+  // (no extra round-trip per trimester) and avoids PostgREST's brittle
+  // or()/array-contains string syntax. Content volume here is small.
   const tag = `${key} trimester`;
-  return POSTS.filter((p) => p.tags.includes(tag)).slice(0, limit);
-}
-
-/* ---------------- Helpers ---------------- */
-
-export function getCategory(slug: string): GuideCategory | undefined {
-  return CATEGORIES.find((c) => c.slug === slug);
-}
-
-export function getPostsByCategory(slug: string): GuidePost[] {
-  return POSTS.filter((p) => p.category === slug);
-}
-
-export function getPost(category: string, slug: string): GuidePost | undefined {
-  return POSTS.find((p) => p.category === category && p.slug === slug);
-}
-
-export function getAllPosts(): GuidePost[] {
-  return POSTS;
-}
-
-/** A few recent posts for the hub landing. */
-export function getFeaturedPosts(limit = 6): GuidePost[] {
-  return [...POSTS]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, limit);
-}
-
-/** The single lead story for the hub's editorial opener (newest post). */
-export function getHeroPost(): GuidePost {
-  return getFeaturedPosts(1)[0];
+  const all = await getAllPosts();
+  return all.filter((p) => p.trimester === key || p.tags.includes(tag)).slice(0, limit);
 }
 
 /** Cross-category related reads, ranked by tag overlap (same category breaks ties). */
-export function getRelatedPosts(post: GuidePost, limit = 3): GuidePost[] {
-  return POSTS.filter((p) => p.slug !== post.slug)
+export async function getRelatedPosts(post: GuidePost, limit = 3): Promise<GuidePost[]> {
+  const all = await getAllPosts();
+  return all
+    .filter((p) => p.slug !== post.slug)
     .map((p) => ({
       p,
       score:
@@ -507,14 +330,12 @@ export function getRelatedPosts(post: GuidePost, limit = 3): GuidePost[] {
     .map((s) => s.p);
 }
 
+/* ---------------- Paths ---------------- */
+
 export function categoryPath(category: string): string {
   return `${GUIDES_BASE}/${category}`;
 }
 
 export function postPath(category: string, slug: string): string {
   return `${GUIDES_BASE}/${category}/${slug}`;
-}
-
-export function countByCategory(slug: string): number {
-  return getPostsByCategory(slug).length;
 }

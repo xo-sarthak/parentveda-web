@@ -13,11 +13,18 @@ import {
 } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
 
-// Only the known categories render; anything else 404s (no soft 404s for SEO).
-export const dynamicParams = false;
+/* Live content: re-render at most once a minute so a Directus publish shows
+   up without a redeploy. */
+export const revalidate = 60;
 
-export function generateStaticParams() {
-  return CATEGORIES.map((c) => ({ category: c.slug }));
+/* Categories are a small, stable set authored in Directus. `true` means a
+   category added after the last build still renders instead of 404ing;
+   an unknown slug still 404s via notFound() below, so no soft 404s. */
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const categories = await CATEGORIES();
+  return categories.map((c) => ({ category: c.slug }));
 }
 
 export async function generateMetadata({
@@ -26,7 +33,7 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category: categorySlug } = await params;
-  const category = getCategory(categorySlug);
+  const category = await getCategory(categorySlug);
   if (!category) return {};
 
   const canonical = categoryPath(category.slug);
@@ -49,10 +56,10 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category: categorySlug } = await params;
-  const category = getCategory(categorySlug);
+  const category = await getCategory(categorySlug);
   if (!category) notFound();
 
-  const posts = getPostsByCategory(category.slug);
+  const posts = await getPostsByCategory(category.slug);
   const canonical = categoryPath(category.slug);
 
   const jsonLd = {

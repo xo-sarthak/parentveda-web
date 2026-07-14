@@ -8,8 +8,9 @@ import { getCategory, postPath, type GuidePost } from "@/lib/guides";
  * with the crafted Thumb as its cover panel. Gives the hub a front page
  * instead of a uniform grid.
  */
-export default function FeaturedPost({ post }: { post: GuidePost }) {
-  const category = getCategory(post.category)!;
+export default async function FeaturedPost({ post }: { post: GuidePost }) {
+  const category = await getCategory(post.category);
+  if (!category) return null;
 
   return (
     <Link

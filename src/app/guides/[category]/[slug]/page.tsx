@@ -14,17 +14,25 @@ import {
   getAllPosts,
   getCategory,
   getPost,
-  getRelatedPosts, // (replaces same-category getPostsByCategory for related reads)
+  getRelatedPosts,
   postPath,
-  type Block,
   type GuidePost,
 } from "@/lib/guides";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
-export const dynamicParams = false;
+/* Content is live: re-render at most once a minute so a Directus publish
+   appears without a redeploy. (Valid here — `revalidate` is only removed
+   under the Cache Components flag, which this project doesn't enable.) */
+export const revalidate = 60;
 
-export function generateStaticParams() {
-  return getAllPosts().map((p) => ({ category: p.category, slug: p.slug }));
+/* Was `false` while content was hardcoded. Now `true`: a post published in
+   Directus AFTER the last build must still render, on-demand, instead of
+   404ing until someone redeploys. Unknown slugs still 404 via notFound(). */
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const posts = await getAllPosts();
+  return posts.map((p) => ({ category: p.category, slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -33,30 +41,34 @@ export async function generateMetadata({
   params: Promise<{ category: string; slug: string }>;
 }): Promise<Metadata> {
   const { category, slug } = await params;
-  const post = getPost(category, slug);
+  const post = await getPost(category, slug);
   if (!post) return {};
 
-  const canonical = postPath(post.category, post.slug);
+  // Authored overrides win; otherwise fall back to exactly what we had before.
+  const canonical = post.canonicalPath ?? postPath(post.category, post.slug);
+  const ogImage = post.ogImage ?? "/parentveda-logo.jpg";
+
   return {
-    title: post.title,
+    title: post.metaTitle ?? post.title,
     description: post.description,
     keywords: post.tags,
     alternates: { canonical },
     openGraph: {
       type: "article",
       url: `${SITE_URL}${canonical}`,
-      title: post.title,
+      title: post.metaTitle ?? post.title,
       description: post.description,
       publishedTime: post.date,
       modifiedTime: post.updated ?? post.date,
       authors: [post.author],
       tags: post.tags,
-      images: ["/parentveda-logo.jpg"],
+      images: [{ url: ogImage, ...(post.ogImageAlt ? { alt: post.ogImageAlt } : {}) }],
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
+      title: post.metaTitle ?? post.title,
       description: post.description,
+      images: [ogImage],
     },
   };
 }
@@ -73,16 +85,23 @@ function isoMinutes(human?: string): string | undefined {
   return m ? `PT${m[1]}M` : undefined;
 }
 
-function blocksToText(blocks: Block[]): string {
-  return blocks
-    .filter((b) => b.type !== "callout")
-    .map((b) => (b.type === "ul" || b.type === "ol" ? b.items.join(" ") : "text" in b ? b.text : ""))
-    .join(" ")
+/* JSON-LD wants the answer as plain text. The body is Markdown now, so strip
+   the syntax rather than walking Block[]. */
+function markdownToText(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/^>\s?note:.*$/gim, " ") // callouts (the disclaimer) aren't the answer
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^[>\-*+]\s+/gm, "")
+    .replace(/^\d+\.\s+/gm, "")
+    .replace(/[*_`~]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function buildJsonLd(post: GuidePost, canonicalAbs: string) {
+function buildJsonLd(post: GuidePost, canonicalAbs: string, ogImageAbs: string) {
   const publisher = {
     "@type": "Organization",
     name: SITE_NAME,
@@ -97,7 +116,7 @@ function buildJsonLd(post: GuidePost, canonicalAbs: string) {
       description: post.description,
       datePublished: post.date,
       author: { "@type": "Organization", name: SITE_NAME },
-      image: [`${SITE_URL}/parentveda-logo.jpg`],
+      image: [ogImageAbs],
       prepTime: isoMinutes(post.recipe.prepTime),
       cookTime: isoMinutes(post.recipe.cookTime),
       totalTime: isoMinutes(post.recipe.totalTime),
@@ -119,7 +138,7 @@ function buildJsonLd(post: GuidePost, canonicalAbs: string) {
         {
           "@type": "Question",
           name: post.title,
-          acceptedAnswer: { "@type": "Answer", text: blocksToText(post.body) },
+          acceptedAnswer: { "@type": "Answer", text: markdownToText(post.body) },
         },
       ],
     };
@@ -135,7 +154,7 @@ function buildJsonLd(post: GuidePost, canonicalAbs: string) {
     author: { "@type": "Organization", name: post.author },
     publisher,
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalAbs },
-    image: [`${SITE_URL}/parentveda-logo.jpg`],
+    image: [ogImageAbs],
   };
 }
 
@@ -145,15 +164,17 @@ export default async function PostPage({
   params: Promise<{ category: string; slug: string }>;
 }) {
   const { category: categorySlug, slug } = await params;
-  const post = getPost(categorySlug, slug);
+  const post = await getPost(categorySlug, slug);
   if (!post) notFound();
 
-  const category = getCategory(post.category)!;
-  const canonical = postPath(post.category, post.slug);
-  /* PRESERVED — same-category related (replaced by tag-overlap getRelatedPosts):
-     const related = getPostsByCategory(post.category).filter((p) => p.slug !== post.slug).slice(0, 3); */
-  const related = getRelatedPosts(post, 3);
-  const jsonLd = buildJsonLd(post, `${SITE_URL}${canonical}`);
+  const category = await getCategory(post.category);
+  if (!category) notFound();
+
+  const canonical = post.canonicalPath ?? postPath(post.category, post.slug);
+  const related = await getRelatedPosts(post, 3);
+  const ogImage = post.ogImage ?? "/parentveda-logo.jpg";
+  const ogImageAbs = ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`;
+  const jsonLd = buildJsonLd(post, `${SITE_URL}${canonical}`, ogImageAbs);
 
   return (
     <Container className="py-10 sm:py-14">
@@ -184,10 +205,18 @@ export default async function PostPage({
 
             <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">
               <span>{post.author}</span>
-              <span className="text-ink-300" aria-hidden>·</span>
-              <time dateTime={post.date}>{formatDate(post.date)}</time>
-              <span className="text-ink-300" aria-hidden>·</span>
-              <span>{post.readingTime}</span>
+              {post.date ? (
+                <>
+                  <span className="text-ink-300" aria-hidden>·</span>
+                  <time dateTime={post.date}>{formatDate(post.date)}</time>
+                </>
+              ) : null}
+              {post.readingTime ? (
+                <>
+                  <span className="text-ink-300" aria-hidden>·</span>
+                  <span>{post.readingTime}</span>
+                </>
+              ) : null}
             </div>
           </header>
 
@@ -242,9 +271,9 @@ export default async function PostPage({
             </div>
           ) : null}
 
-          {/* Body */}
+          {/* Body — Markdown from Directus */}
           <div className="mt-8">
-            <PostBody blocks={post.body} />
+            <PostBody body={post.body} />
           </div>
 
           {post.source ? (

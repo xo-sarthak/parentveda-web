@@ -3,9 +3,12 @@ import Icon from "@/components/brand/Icon";
 import { categoryPath, countByCategory, type GuideCategory } from "@/lib/guides";
 import { TINT } from "@/lib/ui";
 
-/** A linked card for a category — used on the Guides hub landing. */
-export default function CategoryCard({ category }: { category: GuideCategory }) {
-  const count = countByCategory(category.slug);
+/** A linked card for a category — used on the Guides hub landing.
+    PRESERVED: no longer rendered (the hub now uses the compact category
+    strip), but kept working against the async data layer so it stays a
+    one-line revert. */
+export default async function CategoryCard({ category }: { category: GuideCategory }) {
+  const count = await countByCategory(category.slug);
   const tint = TINT[category.tint];
 
   return (

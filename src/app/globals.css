@@ -202,6 +202,62 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
+   Markdown post body (src/components/guides/PostBody.tsx)
+
+   Guide bodies come from Directus as Markdown, so the renderer can't know
+   whether an <li> sits in a ul or an ol — it emits one shape and lets CSS
+   decide. These rules reproduce the typography the old Block[] renderer had.
+   ============================================================ */
+
+/* Unordered: a small coral dot. */
+.md-body ul > li > .md-marker {
+  margin-top: 0.5rem;
+  height: 0.375rem;
+  width: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--color-coral-400);
+}
+
+/* Ordered: a numbered brand chip, numbered by CSS counter. */
+.md-body ol {
+  counter-reset: md-counter;
+}
+.md-body ol > li {
+  counter-increment: md-counter;
+}
+.md-body ol > li > .md-marker {
+  display: grid;
+  place-items: center;
+  height: 1.5rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--color-brand-50);
+  color: var(--color-brand-600);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.md-body ol > li > .md-marker::before {
+  content: counter(md-counter);
+}
+
+/* The opening paragraph reads as an editorial lead, with a serif drop cap. */
+.md-body > p:first-of-type {
+  font-size: 1.12rem;
+}
+.md-body > p:first-of-type::first-letter {
+  float: left;
+  margin-right: 0.625rem;
+  font-family: var(--font-display);
+  font-size: 3.2rem;
+  font-weight: 500;
+  line-height: 0.85;
+  color: var(--color-brand-600);
+}
+
+/* ============================================================
    Keyframes — all gentle, slow, looping
    ============================================================ */
 @keyframes float {

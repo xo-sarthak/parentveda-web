@@ -7,7 +7,9 @@ import { CATEGORIES, GUIDES_BASE, categoryPath } from "@/lib/guides";
  * same-page hash anchors), this links across real routes, so the logo goes
  * home and the category links are crawlable internal links (good for SEO).
  */
-export default function GuidesHeader() {
+export default async function GuidesHeader() {
+  const categories = await CATEGORIES();
+
   return (
     <header className="sticky top-0 z-50 border-b border-brand-500/10 glass">
       <div className="mx-auto w-full max-w-[1200px] px-5 sm:px-7 lg:px-8">
@@ -23,7 +25,7 @@ export default function GuidesHeader() {
             >
               All Guides
             </Link>
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <Link
                 key={c.slug}
                 href={categoryPath(c.slug)}
@@ -50,7 +52,7 @@ export default function GuidesHeader() {
           >
             All
           </Link>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <Link
               key={c.slug}
               href={categoryPath(c.slug)}

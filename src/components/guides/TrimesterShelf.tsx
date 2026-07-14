@@ -1,23 +1,34 @@
 import Link from "next/link";
 import Icon from "@/components/brand/Icon";
 import {
+  CATEGORIES,
   TRIMESTERS,
-  getCategory,
   getPostsByTrimester,
   postPath,
+  type GuideCategory,
 } from "@/lib/guides";
 import { TINT } from "@/lib/ui";
 
 /**
  * "Reading for where you are" — the hub's ParentVeda-specific shelf.
  * Instead of generic categories, posts are grouped by the trimester the
- * reader is actually in (via their existing stage tags).
+ * reader is actually in (the `trimester` column, or their stage tags).
+ *
+ * Server component: all three trimester reads plus the category lookup run
+ * concurrently and resolve from one cached posts fetch.
  */
-export default function TrimesterShelf() {
+export default async function TrimesterShelf() {
+  const [categories, ...byTrimester] = await Promise.all([
+    CATEGORIES(),
+    ...TRIMESTERS.map((t) => getPostsByTrimester(t.key)),
+  ]);
+
+  const bySlug = new Map<string, GuideCategory>(categories.map((c) => [c.slug, c]));
+
   return (
     <div className="grid gap-5 md:grid-cols-3">
-      {TRIMESTERS.map((t) => {
-        const posts = getPostsByTrimester(t.key);
+      {TRIMESTERS.map((t, i) => {
+        const posts = byTrimester[i];
         const tint = TINT[t.tint];
 
         return (
@@ -39,9 +50,9 @@ export default function TrimesterShelf() {
 
             <ul className="mt-4 flex flex-1 flex-col divide-y divide-brand-500/[0.07]">
               {posts.map((p) => {
-                const category = getCategory(p.category);
+                const category = bySlug.get(p.category);
                 return (
-                  <li key={p.slug}>
+                  <li key={`${p.category}/${p.slug}`}>
                     <Link
                       href={postPath(p.category, p.slug)}
                       className="group flex items-start gap-3 py-3 first:pt-1 last:pb-0"
