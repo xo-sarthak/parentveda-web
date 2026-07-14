@@ -6,6 +6,7 @@ import Icon from "@/components/brand/Icon";
 import Breadcrumbs from "@/components/guides/Breadcrumbs";
 import PostBody from "@/components/guides/PostBody";
 import PostCard from "@/components/guides/PostCard";
+import ReadingProgress from "@/components/guides/ReadingProgress";
 import JsonLd from "@/components/guides/JsonLd";
 import {
   GUIDES_BASE,
@@ -13,7 +14,7 @@ import {
   getAllPosts,
   getCategory,
   getPost,
-  getPostsByCategory,
+  getRelatedPosts, // (replaces same-category getPostsByCategory for related reads)
   postPath,
   type Block,
   type GuidePost,
@@ -149,11 +150,14 @@ export default async function PostPage({
 
   const category = getCategory(post.category)!;
   const canonical = postPath(post.category, post.slug);
-  const related = getPostsByCategory(post.category).filter((p) => p.slug !== post.slug).slice(0, 3);
+  /* PRESERVED — same-category related (replaced by tag-overlap getRelatedPosts):
+     const related = getPostsByCategory(post.category).filter((p) => p.slug !== post.slug).slice(0, 3); */
+  const related = getRelatedPosts(post, 3);
   const jsonLd = buildJsonLd(post, `${SITE_URL}${canonical}`);
 
   return (
     <Container className="py-10 sm:py-14">
+      <ReadingProgress />
       <div className="mx-auto max-w-3xl">
         <Breadcrumbs
           trail={[
@@ -271,15 +275,15 @@ export default async function PostPage({
           </Link>
         </div>
 
-        {/* Related */}
+        {/* Related — cross-category, ranked by shared tags */}
         {related.length ? (
           <section className="mt-14" aria-labelledby="related-heading">
             <h2 id="related-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
-              More {category.name.toLowerCase()}
+              Related reads
             </h2>
             <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((p) => (
-                <PostCard key={p.slug} post={p} showCategory={false} />
+                <PostCard key={p.slug} post={p} />
               ))}
             </div>
           </section>

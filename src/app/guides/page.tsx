@@ -1,11 +1,29 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Container from "@/components/ui/Container";
+import Icon from "@/components/brand/Icon";
 import Breadcrumbs from "@/components/guides/Breadcrumbs";
-import CategoryCard from "@/components/guides/CategoryCard";
+import FeaturedPost from "@/components/guides/FeaturedPost";
+import TrimesterShelf from "@/components/guides/TrimesterShelf";
 import PostCard from "@/components/guides/PostCard";
 import JsonLd from "@/components/guides/JsonLd";
-import { CATEGORIES, GUIDES_BASE, GUIDES_TAGLINE, getFeaturedPosts } from "@/lib/guides";
+import {
+  CATEGORIES,
+  GUIDES_BASE,
+  GUIDES_TAGLINE,
+  categoryPath,
+  countByCategory,
+  getFeaturedPosts,
+  getHeroPost,
+} from "@/lib/guides";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
+import { TINT } from "@/lib/ui";
+
+/* PRESERVED — the previous hub layout (uniform CategoryCard grid + flat
+   "Latest reads" grid) used:
+     import CategoryCard from "@/components/guides/CategoryCard";
+   and rendered CATEGORIES.map(c => <CategoryCard ... />) followed by
+   getFeaturedPosts(6) as an even grid. The component file is untouched. */
 
 export const metadata: Metadata = {
   title: "Pregnancy & Parenting Guides",
@@ -20,7 +38,8 @@ export const metadata: Metadata = {
 };
 
 export default function GuidesHub() {
-  const featured = getFeaturedPosts(6);
+  const hero = getHeroPost();
+  const latest = getFeaturedPosts(7).filter((p) => p.slug !== hero.slug).slice(0, 6);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -41,22 +60,25 @@ export default function GuidesHub() {
         </p>
         <h1 className="mt-3 text-balance font-display text-[2.3rem] font-medium leading-[1.08] tracking-[-0.02em] text-ink-900 sm:text-[2.9rem]">
           Calm, trustworthy reading for{" "}
-          <span className="text-gradient italic">every step.</span>
+          <em className="italic text-brand-600">every step.</em>
         </h1>
         <p className="mt-4 text-pretty text-[1.05rem] leading-relaxed text-ink-600">
           {GUIDES_TAGLINE}
         </p>
       </header>
 
-      {/* Categories */}
-      <section className="mt-12" aria-labelledby="categories-heading">
-        <h2 id="categories-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
-          Browse by category
+      {/* The lead story */}
+      <section className="mt-10" aria-label="Featured guide">
+        <FeaturedPost post={hero} />
+      </section>
+
+      {/* Stage-aware shelf — the axis only a pregnancy library has */}
+      <section className="mt-16" aria-labelledby="stage-heading">
+        <h2 id="stage-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
+          Reading for where you are
         </h2>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((c) => (
-            <CategoryCard key={c.slug} category={c} />
-          ))}
+        <div className="mt-5">
+          <TrimesterShelf />
         </div>
       </section>
 
@@ -66,9 +88,40 @@ export default function GuidesHub() {
           Latest reads
         </h2>
         <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((p) => (
+          {latest.map((p) => (
             <PostCard key={p.slug} post={p} />
           ))}
+        </div>
+      </section>
+
+      {/* Compact category index */}
+      <section className="mt-16" aria-labelledby="categories-heading">
+        <h2 id="categories-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
+          Browse by category
+        </h2>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {CATEGORIES.map((c) => {
+            const count = countByCategory(c.slug);
+            return (
+              <Link
+                key={c.slug}
+                href={categoryPath(c.slug)}
+                className="lift group flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-soft ring-1 ring-brand-500/[0.06]"
+              >
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${TINT[c.tint].icon}`}>
+                  <Icon name={c.icon} className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[0.92rem] font-bold text-ink-900 transition-colors group-hover:text-brand-600">
+                    {c.name}
+                  </span>
+                  <span className="block text-xs font-medium text-ink-400">
+                    {count} {count === 1 ? "piece" : "pieces"}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 

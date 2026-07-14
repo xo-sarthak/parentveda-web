@@ -13,6 +13,18 @@ export default function PostBody({ blocks }: { blocks: Block[] }) {
               </h2>
             );
           case "p":
+            // The opening paragraph reads as an editorial lead — a touch
+            // larger, with a serif drop cap.
+            if (i === 0) {
+              return (
+                <p
+                  key={i}
+                  className="text-pretty text-[1.12rem] leading-relaxed text-ink-700 first-letter:float-left first-letter:mr-2.5 first-letter:font-display first-letter:text-[3.2rem] first-letter:font-medium first-letter:leading-[0.85] first-letter:text-brand-600"
+                >
+                  {b.text}
+                </p>
+              );
+            }
             return (
               <p key={i} className="text-pretty text-[1.05rem] leading-relaxed text-ink-700">
                 {b.text}

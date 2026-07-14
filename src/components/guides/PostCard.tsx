@@ -1,26 +1,24 @@
 import Link from "next/link";
-import Icon from "@/components/brand/Icon";
+import Thumb from "@/components/guides/Thumb";
 import { getCategory, postPath, type GuidePost } from "@/lib/guides";
-import { TINT } from "@/lib/ui";
 
+/* PRESERVED — the flat icon-on-gradient thumb (replaced by <Thumb />).
 const THUMB: Record<string, string> = {
   brand: "from-brand-100 to-mist",
   coral: "from-coral-100 to-coral-50",
   earth: "from-earth-100 to-earth-50",
 };
+*/
 
 /** A linked card for a single guide post — used on the hub and category pages. */
 export default function PostCard({ post, showCategory = true }: { post: GuidePost; showCategory?: boolean }) {
   const category = getCategory(post.category);
-  const tint = category?.tint ?? "brand";
 
   return (
     <article className="lift group h-full overflow-hidden rounded-card bg-surface shadow-card ring-1 ring-brand-500/[0.06]">
       <Link href={postPath(post.category, post.slug)} className="flex h-full flex-col">
-        <div className={`relative grid h-28 place-items-center bg-gradient-to-br ${THUMB[tint]}`}>
-          <span className={`grid h-14 w-14 place-items-center rounded-2xl bg-white/70 shadow-soft backdrop-blur ${TINT[tint].text}`}>
-            <Icon name={category?.icon ?? "book"} className="h-7 w-7" />
-          </span>
+        <div className="relative">
+          {category ? <Thumb category={category} className="h-32" /> : null}
           {showCategory && category ? (
             <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-brand-600 shadow-soft">
               {category.singular}

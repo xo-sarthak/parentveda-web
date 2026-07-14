@@ -420,6 +420,49 @@ export const POSTS: GuidePost[] = [
   },
 ];
 
+/* ---------------- Trimesters ----------------
+   Pregnancy content has an organizing axis nothing else has: the stage the
+   reader is in. Posts opt in via their existing tags ("first trimester" …). */
+
+export type TrimesterKey = "first" | "second" | "third";
+
+export type Trimester = {
+  key: TrimesterKey;
+  name: string;
+  weeks: string;
+  blurb: string;
+  tint: Tint;
+};
+
+export const TRIMESTERS: Trimester[] = [
+  {
+    key: "first",
+    name: "First trimester",
+    weeks: "Weeks 1–13",
+    blurb: "The tender early days — nausea, folic acid, and settling in gently.",
+    tint: "brand",
+  },
+  {
+    key: "second",
+    name: "Second trimester",
+    weeks: "Weeks 14–27",
+    blurb: "The golden middle — energy returns, and the first little kicks arrive.",
+    tint: "coral",
+  },
+  {
+    key: "third",
+    name: "Third trimester",
+    weeks: "Weeks 28–40",
+    blurb: "The home stretch — rest, warm food and getting ready to say hello.",
+    tint: "earth",
+  },
+];
+
+export function getPostsByTrimester(key: TrimesterKey, limit = 4): GuidePost[] {
+  const tag = `${key} trimester`;
+  return POSTS.filter((p) => p.tags.includes(tag)).slice(0, limit);
+}
+
 /* ---------------- Helpers ---------------- */
 
 export function getCategory(slug: string): GuideCategory | undefined {
@@ -443,6 +486,25 @@ export function getFeaturedPosts(limit = 6): GuidePost[] {
   return [...POSTS]
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, limit);
+}
+
+/** The single lead story for the hub's editorial opener (newest post). */
+export function getHeroPost(): GuidePost {
+  return getFeaturedPosts(1)[0];
+}
+
+/** Cross-category related reads, ranked by tag overlap (same category breaks ties). */
+export function getRelatedPosts(post: GuidePost, limit = 3): GuidePost[] {
+  return POSTS.filter((p) => p.slug !== post.slug)
+    .map((p) => ({
+      p,
+      score:
+        p.tags.filter((t) => post.tags.includes(t)).length * 2 +
+        (p.category === post.category ? 1 : 0),
+    }))
+    .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
+    .slice(0, limit)
+    .map((s) => s.p);
 }
 
 export function categoryPath(category: string): string {
