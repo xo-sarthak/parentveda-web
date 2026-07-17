@@ -1,6 +1,6 @@
 /* Canonical site origin — used for metadata, canonical URLs, sitemap & JSON-LD.
    Keep in sync with metadataBase in src/app/layout.tsx. */
-export const SITE_URL = "https://parentveda.app";
+export const SITE_URL = "https://parentveda.in";
 export const SITE_NAME = "ParentVeda";
 
 /* Path prefix the site is served under. Empty at the root (local dev, custom

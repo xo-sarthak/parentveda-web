@@ -24,7 +24,7 @@ const manrope = Manrope({
   variable: "--font-manrope",
 });
 
-const SITE_URL = "https://parentveda.app";
+const SITE_URL = "https://parentveda.in";
 const DESCRIPTION =
   "ParentVeda is a calm, bilingual pregnancy & early-parenthood companion for modern Indian parents — blending timeless Indian wisdom with gentle, modern guidance. From week 4 to your baby's first cry.";
 
