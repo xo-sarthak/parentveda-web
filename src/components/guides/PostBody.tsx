@@ -80,6 +80,27 @@ const components: Components = {
       {children}
     </a>
   ),
+  // Markdown images render as a full-width, rounded figure with an optional
+  // caption drawn from the image title: ![alt](src "caption"). react-markdown
+  // wraps a lone image in a <p>, so the wrapper and caption are <span>s set to
+  // display:block — a <figure>/<figcaption> here would be invalid inside <p>.
+  img: ({ src, alt, title }) =>
+    typeof src === "string" ? (
+      <span className="my-3 block">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt ?? ""}
+          loading="lazy"
+          className="w-full rounded-2xl ring-1 ring-brand-500/10"
+        />
+        {title ? (
+          <span className="mt-2 block text-center text-[0.85rem] italic text-ink-500">
+            {title}
+          </span>
+        ) : null}
+      </span>
+    ) : null,
   strong: ({ children }) => <strong className="font-bold text-ink-900">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
   hr: () => <hr className="my-2 border-0 border-t border-brand-500/10" />,
