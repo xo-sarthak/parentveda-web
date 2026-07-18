@@ -1,4 +1,4 @@
-import Markdown, { type Components } from "react-markdown";
+import Markdown, { defaultUrlTransform, type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FIGURES, FIGURE_SCHEME } from "@/components/guides/figures";
 import Toc, { tocItems } from "@/components/guides/Toc";
@@ -78,8 +78,19 @@ function makeComponents(body: string): Components {
       {children}
     </h3>
   ),
-  p: ({ children }) => {
+  p: ({ children, node }) => {
     if (TOC_MARKER.test(blockText(children).trim())) return <Toc items={items} />;
+
+    /* Markdown wraps a lone image in a paragraph, but our figures render
+       block elements (<figure>, and a grid <div> for the pathway diagram),
+       which are invalid inside <p>. The browser would silently close the
+       paragraph early and hydration would then mismatch. Drop the wrapper
+       when the paragraph holds nothing but the image. */
+    const kids = node?.children ?? [];
+    const onlyImage =
+      kids.length === 1 && kids[0].type === "element" && kids[0].tagName === "img";
+    if (onlyImage) return <>{children}</>;
+
     return <p className="text-pretty text-[1.05rem] leading-relaxed text-ink-700">{children}</p>;
   },
   ul: ({ children }) => <ul className="flex flex-col gap-2.5">{children}</ul>,
@@ -162,19 +173,21 @@ function makeComponents(body: string): Components {
       const Figure = FIGURES[src.slice(FIGURE_SCHEME.length)];
       if (!Figure) return null; // Unknown key: render nothing, never a broken image.
       return (
-        <span className="my-4 block">
-          <span className="block overflow-x-auto rounded-2xl bg-surface p-4 ring-1 ring-brand-500/10">
+        <figure className="my-2">
+          <div className="overflow-x-auto rounded-2xl bg-surface p-4 ring-1 ring-brand-500/10">
             <Figure />
-          </span>
+          </div>
           {title ? (
-            <span className="mt-2 block text-center text-[0.85rem] italic text-ink-500">{title}</span>
+            <figcaption className="mt-2 text-center text-[0.85rem] italic text-ink-500">
+              {title}
+            </figcaption>
           ) : null}
-        </span>
+        </figure>
       );
     }
 
     return (
-      <span className="my-3 block">
+      <figure className="my-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
@@ -183,11 +196,11 @@ function makeComponents(body: string): Components {
           className="w-full rounded-2xl ring-1 ring-brand-500/10"
         />
         {title ? (
-          <span className="mt-2 block text-center text-[0.85rem] italic text-ink-500">
+          <figcaption className="mt-2 text-center text-[0.85rem] italic text-ink-500">
             {title}
-          </span>
+          </figcaption>
         ) : null}
-      </span>
+      </figure>
     );
   },
   strong: ({ children }) => <strong className="font-bold text-ink-900">{children}</strong>,
@@ -214,10 +227,21 @@ function makeComponents(body: string): Components {
   };
 }
 
+/* react-markdown sanitises URLs to a safe protocol list, which strips our
+   `figure:` scheme to an empty src and would silently render a broken image
+   instead of the diagram. Let that one scheme through and defer everything
+   else to the default, so the XSS protection stays intact for real links. */
+const urlTransform = (url: string): string =>
+  url.startsWith(FIGURE_SCHEME) ? url : defaultUrlTransform(url);
+
 export default function PostBody({ body }: { body: string }) {
   return (
     <div className="md-body flex flex-col gap-5">
-      <Markdown remarkPlugins={[remarkGfm]} components={makeComponents(body)}>
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        components={makeComponents(body)}
+        urlTransform={urlTransform}
+      >
         {body}
       </Markdown>
     </div>
