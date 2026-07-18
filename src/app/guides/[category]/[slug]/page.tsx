@@ -15,6 +15,7 @@ import {
   getCategory,
   getPost,
   getRelatedPosts,
+  isUnlisted,
   postPath,
   type GuidePost,
 } from "@/lib/guides";
@@ -52,6 +53,9 @@ export async function generateMetadata({
     title: post.metaTitle ?? post.title,
     description: post.description,
     keywords: post.tags,
+    // An unlisted post is a review link, not content we want ranked. Keep it
+    // out of the index even though the URL itself is reachable.
+    ...(isUnlisted(post) ? { robots: { index: false, follow: false } } : {}),
     alternates: { canonical },
     openGraph: {
       type: "article",
@@ -99,6 +103,56 @@ function markdownToText(md: string): string {
     .replace(/[*_`~]/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/* Pull Q&A pairs out of the article's own FAQ section so the schema can never
+   drift from what the page actually shows. Each H3 inside the "Common
+   questions" H2 is a question; the prose under it is the answer. */
+function extractFaqs(body: string): { q: string; a: string }[] {
+  const faqs: { q: string; a: string }[] = [];
+  let inFaqs = false;
+  let question: string | null = null;
+  let answer: string[] = [];
+
+  const flush = () => {
+    const text = markdownToText(answer.join(" "));
+    if (question && text) faqs.push({ q: question, a: text });
+    question = null;
+    answer = [];
+  };
+
+  for (const line of body.split("\n")) {
+    const h2 = /^##\s+(.+?)\s*$/.exec(line);
+    if (h2) {
+      flush();
+      inFaqs = /common questions|frequently asked|faqs?$/i.test(h2[1].replace(/[*_`]/g, ""));
+      continue;
+    }
+    if (!inFaqs) continue;
+
+    const h3 = /^###\s+(.+?)\s*$/.exec(line);
+    if (h3) {
+      flush();
+      question = h3[1].replace(/[*_`]/g, "").trim();
+      continue;
+    }
+    if (question) answer.push(line);
+  }
+  flush();
+
+  return faqs;
+}
+
+function buildFaqSchema(faqs: { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
 }
 
 function buildJsonLd(post: GuidePost, canonicalAbs: string, ogImageAbs: string) {
@@ -174,7 +228,13 @@ export default async function PostPage({
   const related = await getRelatedPosts(post, 3);
   const ogImage = post.ogImage ?? "/parentveda-logo.jpg";
   const ogImageAbs = ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`;
-  const jsonLd = buildJsonLd(post, `${SITE_URL}${canonical}`, ogImageAbs);
+  const baseJsonLd = buildJsonLd(post, `${SITE_URL}${canonical}`, ogImageAbs);
+
+  /* An article with its own FAQ section gets FAQPage alongside Article. The
+     parenting-faq category is skipped: buildJsonLd already returns FAQPage
+     for it, and two FAQPage blocks on one URL would compete. */
+  const faqs = post.category === "parenting-faq" ? [] : extractFaqs(post.body);
+  const jsonLd = faqs.length >= 2 ? [baseJsonLd, buildFaqSchema(faqs)] : baseJsonLd;
 
   return (
     <Container className="py-10 sm:py-14">

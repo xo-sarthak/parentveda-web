@@ -170,6 +170,25 @@ function isRenderable(r: PostRow): boolean {
   return Boolean(r.slug && r.title && r.category);
 }
 
+/* ---------------- Unlisted posts ----------------
+   A post tagged "unlisted" stays reachable at its own URL but is hidden from
+   every listing surface — the hub, category pages, related reads, counts and
+   sitemap.xml — and the article page marks it noindex. That gives us a share-
+   able review link with no entry point on the site.
+
+   Filtering happens in JS rather than SQL on purpose: PostgREST's `not.cs`
+   would also drop rows whose `tags` is NULL, silently hiding real posts.
+
+   Unlisted is not private. Anyone with the link can read it, so it is for
+   review convenience, never for anything confidential. */
+export const UNLISTED_TAG = "unlisted";
+
+export function isUnlisted(post: GuidePost): boolean {
+  return post.tags.includes(UNLISTED_TAG);
+}
+
+const listed = (posts: GuidePost[]): GuidePost[] => posts.filter((p) => !isUnlisted(p));
+
 /* ---------------- Data access (async) ---------------- */
 
 /** All published posts, newest first. */
@@ -181,7 +200,7 @@ export async function getAllPosts(): Promise<GuidePost[]> {
     .order("published_at", { ascending: false });
 
   if (error) throw new Error(`Supabase: failed to load posts — ${error.message}`);
-  return ((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost);
+  return listed(((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost));
 }
 
 /** All categories, in their authored sort order. */
@@ -221,7 +240,7 @@ export async function getPostsByCategory(slug: string): Promise<GuidePost[]> {
     .order("published_at", { ascending: false });
 
   if (error) throw new Error(`Supabase: failed to load ${slug} posts — ${error.message}`);
-  return ((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost);
+  return listed(((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost));
 }
 
 export async function getPost(category: string, slug: string): Promise<GuidePost | undefined> {
@@ -239,15 +258,21 @@ export async function getPost(category: string, slug: string): Promise<GuidePost
 
 /** A few recent posts for the hub landing. */
 export async function getFeaturedPosts(limit = 6): Promise<GuidePost[]> {
+  // Over-fetch, then drop unlisted rows in JS. Applying `limit` alone would
+  // return short whenever a recent post is unlisted, because the row is spent
+  // against the limit in SQL and only filtered out afterwards.
   const { data, error } = await supabase
     .from("content_posts")
     .select(POST_COLUMNS)
     .eq("status", "published")
     .order("published_at", { ascending: false })
-    .limit(limit);
+    .limit(limit + 10);
 
   if (error) throw new Error(`Supabase: failed to load featured posts — ${error.message}`);
-  return ((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost);
+  return listed(((data ?? []) as unknown as PostRow[]).filter(isRenderable).map(toPost)).slice(
+    0,
+    limit
+  );
 }
 
 /** The single lead story for the hub's editorial opener (newest post). */
@@ -256,14 +281,18 @@ export async function getHeroPost(): Promise<GuidePost | undefined> {
 }
 
 export async function countByCategory(slug: string): Promise<number> {
-  const { count, error } = await supabase
+  // Selects tags instead of a head-only count: an exact count in SQL would
+  // include unlisted posts, overstating every category badge by one.
+  const { data, error } = await supabase
     .from("content_posts")
-    .select("slug", { count: "exact", head: true })
+    .select("slug, tags")
     .eq("status", "published")
     .eq("category", slug);
 
   if (error) throw new Error(`Supabase: failed to count ${slug} — ${error.message}`);
-  return count ?? 0;
+  return ((data ?? []) as { slug: string; tags: string[] | null }[]).filter(
+    (r) => r.slug && !(r.tags ?? []).includes(UNLISTED_TAG)
+  ).length;
 }
 
 /* ---------------- Trimesters ----------------

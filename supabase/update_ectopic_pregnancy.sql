@@ -1,21 +1,15 @@
--- article/ectopic-pregnancy: pilot article loaded from
--- Ectopic-Pregnancy-Article-After plagarism.docx (Section 1: Final Piece).
--- Same shape & safety guard as supabase/seed_posts.sql. Run in: Supabase → SQL Editor.
+-- article/ectopic-pregnancy: update the LIVE row in place.
+--
+-- The insert file is guarded by `where not exists`, so re-running it after the
+-- post exists changes nothing. This updates the published row instead.
+-- Run in: Supabase → SQL Editor.
 
-insert into public.content_posts (
-  status, category, slug, title, meta_title, description, excerpt, body, author,
-  reading_time, tags, trimester, recipe, source, book_meta,
-  published_at, updated_at
-)
-select
-  'published',
-  'article',
-  'ectopic-pregnancy',
-  'Ectopic Pregnancy: Understanding a Hard Moment, Without Fear or Blame',
-  'Ectopic Pregnancy: Signs, Treatment & Why It''s No One''s Fault',
-  'Ectopic pregnancy explained with care: what it means, the emergency signs, how it''s treated, what it means for trying again, and why it is no one''s fault.',
-  'A calm, honest guide to what an ectopic pregnancy means: the signs to know, how it''s treated, what it means for trying again, and why it is never anyone''s fault.',
-  'To anyone who has just heard the words “ectopic pregnancy,” or who fears one may be coming, the feelings that follow, fear, confusion, grief, are completely understandable. This is one of the more frightening things a person can be told in early pregnancy. What follows is a calm, honest walk through what the diagnosis means, including the parts that are hard. Two things are worth holding from the very start: caught in time, an ectopic pregnancy is very treatable, and however it came about, it is not a failing on anyone''s part.
+update public.content_posts set
+  title       = 'Ectopic Pregnancy: Understanding a Hard Moment, Without Fear or Blame',
+  meta_title  = 'Ectopic Pregnancy: Signs, Treatment & Why It''s No One''s Fault',
+  description = 'Ectopic pregnancy explained with care: what it means, the emergency signs, how it''s treated, what it means for trying again, and why it is no one''s fault.',
+  excerpt     = 'A calm, honest guide to what an ectopic pregnancy means: the signs to know, how it''s treated, what it means for trying again, and why it is never anyone''s fault.',
+  body        = 'To anyone who has just heard the words “ectopic pregnancy,” or who fears one may be coming, the feelings that follow, fear, confusion, grief, are completely understandable. This is one of the more frightening things a person can be told in early pregnancy. What follows is a calm, honest walk through what the diagnosis means, including the parts that are hard. Two things are worth holding from the very start: caught in time, an ectopic pregnancy is very treatable, and however it came about, it is not a failing on anyone''s part.
 
 ## The quick answer
 
@@ -113,20 +107,14 @@ Most likely, yes, even with one fallopian tube, though the next pregnancy is wat
 
 > Note: ParentVeda offers gentle, evidence-informed guidance, not medical advice. In early pregnancy, sudden or one-sided pain, shoulder-tip pain, faintness or heavy bleeding needs urgent medical care. Always consult your doctor for decisions about your pregnancy.
 ',
-  'Team ParentVeda',
-  '5 min read',
-  ARRAY['ectopic pregnancy', 'first trimester', 'pregnancy loss', 'early pregnancy']::text[],
-  'first',
-  NULL,
-  '{"label":"Reviewed against ACOG, Mayo Clinic, RCOG / The Ectopic Pregnancy Trust and NHS patient guidance."}'::jsonb,
-  NULL,
-  '2026-07-18'::timestamptz,
-  '2026-07-18'::timestamptz
-where not exists (
-  select 1 from public.content_posts
-  where category = 'article' and slug = 'ectopic-pregnancy'
-);
+  updated_at  = now()
+where category = 'article' and slug = 'ectopic-pregnancy';
 
--- Confirm it landed:
-select status, category, slug, title from public.content_posts
+-- Confirm no em dashes remain anywhere in the row:
+select
+  position(U&'\2014' in body)        as em_dash_in_body,
+  position(U&'\2014' in excerpt)     as em_dash_in_excerpt,
+  position(U&'\2014' in description) as em_dash_in_description,
+  updated_at
+from public.content_posts
 where category = 'article' and slug = 'ectopic-pregnancy';
