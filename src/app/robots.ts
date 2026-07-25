@@ -9,6 +9,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      /* Referral landing pages — one unique URL per user, near-identical copy,
+         no search value. The pages also send noindex themselves; this just
+         saves the crawl. Link previews are unaffected: WhatsApp/Facebook
+         crawlers fetch shared URLs directly and don't consult robots.txt. */
+      disallow: "/invite/",
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,
