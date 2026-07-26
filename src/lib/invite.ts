@@ -48,11 +48,24 @@ export const INVITE_BASE = "/invite";
 export const REFERRER_KEY = "utm_content";
 
 /**
- * Accepted code shape. Deliberately permissive on length — the app owns code
- * generation, this only rejects obvious junk (path probes, emoji, SQL) before
- * it reaches the page. Tighten once the app's generator is fixed.
+ * Accepted code shape — confirmed against lib/referral/referral_engine.dart.
+ *
+ * The generator was never broken; it produces EXACTLY 7 characters from
+ * `ABCDEFGHJKMNPQRSTUVWXYZ23456789` — no I, L, O, 0 or 1, so a code retyped
+ * from a screenshot cannot be mistyped into a different valid one.
+ *
+ * The old shape (4-12 of A-Z0-9) accepted codes the app can never produce,
+ * including ones containing the excluded characters. Kept for reference:
+ * const CODE_RE = /^[A-Z0-9]{4,12}$/;
+ *
+ * NOTE length is the ONLY difference between an invite code (7) and a Care
+ * Partner token (10). That is precisely why the two systems are told apart by
+ * `utm_source` and never by length — see lib/care.ts.
  */
-const CODE_RE = /^[A-Z0-9]{4,12}$/;
+export const INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+export const INVITE_CODE_LENGTH = 7;
+
+const CODE_RE = new RegExp(`^[${INVITE_ALPHABET}]{${INVITE_CODE_LENGTH}}$`);
 
 /**
  * Normalise a code out of the URL.
