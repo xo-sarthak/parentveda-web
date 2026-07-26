@@ -20,7 +20,7 @@ const SIZES: Record<Size, string> = {
 };
 
 const BASE =
-  "group inline-flex select-none items-center justify-center rounded-btn font-sans font-semibold leading-none transition-all duration-300 ease-out active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60";
+  "group inline-flex select-none items-center justify-center rounded-btn font-heading font-semibold leading-none transition-all duration-300 ease-out active:scale-[0.985] disabled:pointer-events-none disabled:opacity-60";
 
 type BaseProps = {
   variant?: Variant;

@@ -64,7 +64,8 @@
   /* — Type system (3 fonts, wired from next/font in layout.tsx) — */
   --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
   --font-heading: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Body copy is a reading serif. UI chrome uses --font-heading. */
+  --font-sans: var(--font-source-serif), ui-serif, Georgia, "Times New Roman", serif;
 
   /* — Radii — */
   --radius-card: 22px;
@@ -211,7 +212,10 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Unordered: a small coral dot. */
 .md-body ul > li > .md-marker {
-  margin-top: 0.5rem;
+  /* Centred on the first line rather than pinned a fixed distance from its
+     top — otherwise the dot rides up towards the ascender whenever the body
+     line-height changes. --md-li-line is set with the list sizing below. */
+  margin-top: calc((var(--md-li-line) - 0.375rem) / 2);
   height: 0.375rem;
   width: 0.375rem;
   flex-shrink: 0;
@@ -227,6 +231,7 @@ h1, h2, h3, h4, h5, h6 {
   counter-increment: md-counter;
 }
 .md-body ol > li > .md-marker {
+  margin-top: calc((var(--md-li-line) - 1.5rem) / 2);
   display: grid;
   place-items: center;
   height: 1.5rem;
@@ -243,18 +248,11 @@ h1, h2, h3, h4, h5, h6 {
   content: counter(md-counter);
 }
 
-/* The opening paragraph reads as an editorial lead, with a serif drop cap. */
+/* The opening paragraph reads as an editorial lead — a touch larger, no more
+   than that. (There was a Fraunces drop cap here; it fired on every separate
+   body fragment, including the disclaimer, and read as decoration.) */
 .md-body > p:first-of-type {
-  font-size: 1.12rem;
-}
-.md-body > p:first-of-type::first-letter {
-  float: left;
-  margin-right: 0.625rem;
-  font-family: var(--font-display);
-  font-size: 3.2rem;
-  font-weight: 500;
-  line-height: 0.85;
-  color: var(--color-brand-600);
+  font-size: 1.18rem;
 }
 
 /* ============================================================
@@ -296,4 +294,102 @@ h1, h2, h3, h4, h5, h6 {
 }
 @keyframes draw {
   to { stroke-dashoffset: 0; }
+}
+
+/* ============================================================
+   Article reading typography.
+
+   Promoted out of the /guides/lab sandbox now the settings are signed off, so
+   every article route gets them — the sandbox and the live article read
+   identically.
+
+   Sizing follows What to Expect's *ratios*, not its absolute values. Their H2
+   is a full 2x the body size at weight 700, which is what makes their sections
+   separate. Their body, though, is 14px at 1.38 line-height — cramped, and
+   copying that would make reading worse. So: their contrast, a comfortable
+   reading size.
+
+   Deliberately UNLAYERED. Tailwind's utilities live in @layer utilities, and
+   an unlayered rule beats any layered one regardless of specificity — which is
+   what lets these override the utility classes PostBody stamps on its own
+   headings without a single !important.
+   ============================================================ */
+
+.md-body {
+  /* Line box for list items — the marker offsets further up derive from it. */
+  --md-li-line: calc(1.08rem * 1.75);
+  /* Measure. The single biggest readability lever, and the one thing neither
+     reference site gets right: line length, not size. Past ~75 characters the
+     eye starts losing the return. */
+  max-width: 68ch;
+}
+
+.md-body p { font-size: 1.12rem; line-height: 1.78; color: var(--color-ink-800); }
+.md-body li { font-size: 1.08rem; line-height: 1.75; color: var(--color-ink-800); }
+
+/* Headings. Previously Fraunces at weight 500 and 1.6rem against 1.05rem body
+   — only ~1.5x the size and visually LIGHTER than the paragraphs beneath it.
+   That, far more than the typeface, is why the page read flat. */
+.md-body h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  color: var(--color-ink-900);
+  margin-top: 3.5rem;
+  padding-top: 2.25rem;
+  border-top: 1px solid var(--color-ink-100);
+}
+.md-body h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+
+.md-body h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-ink-900);
+  margin-top: 2rem;
+}
+
+/* Bold that actually reads as bold — the default inherited body weight and
+   colour, so emphasis in the Markdown barely registered. */
+.md-body strong { font-weight: 700; color: var(--color-ink-900); }
+
+/* ---- Callouts -------------------------------------------------------------
+   Three different jobs, so three different shapes rather than one panel in
+   three colours:
+     Important  a tinted notice bar   — safety information, must be noticed
+     Insight    a badge and a big italic — a moment, not a warning
+     Note       hairline fine print   — the disclaimer, present but quiet
+   Their own type sizing wins over the body rules above. */
+.md-body .callout-aside p { font-size: inherit; line-height: inherit; color: inherit; }
+.md-body .callout-important p:last-child { font-size: 0.95rem; line-height: 1.7; }
+.md-body .callout-insight p:last-child { font-size: 1.28rem; line-height: 1.45; }
+
+/* Placed last so it beats `.md-body > p:first-of-type` on source order — the
+   disclaimer renders as its own fragment and would otherwise pick up the
+   larger opening-paragraph size. */
+.md-body > p.callout-note,
+.md-body p.callout-note {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--color-ink-400);
+}
+
+/* ---- FAQ accordion --------------------------------------------------------
+   Smooth open/close with no JavaScript. `interpolate-size` makes `auto` an
+   animatable height, and allow-discrete carries content-visibility across the
+   transition. Browsers without support simply snap open as they did before. */
+@supports (interpolate-size: allow-keywords) {
+  :root { interpolate-size: allow-keywords; }
+}
+
+.faq-item::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              content-visibility 320ms;
+  transition-behavior: allow-discrete;
+}
+.faq-item[open]::details-content {
+  block-size: auto;
 }

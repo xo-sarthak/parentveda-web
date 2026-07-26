@@ -1,6 +1,8 @@
 import Logo from "@/components/brand/Logo";
 import NewsletterMini from "@/components/ui/NewsletterMini";
 import { FOOTER_LINKS, WHATSAPP_HREF } from "@/lib/content";
+import { ORG, legalPath } from "@/lib/legal";
+import { BASE_PATH } from "@/lib/site";
 
 function WhatsAppGlyph({ className }: { className?: string }) {
   return (
@@ -100,13 +102,25 @@ export default function Footer() {
                 Company
               </p>
               <ul className="mt-4 flex flex-col gap-3">
-                {["Privacy", "Terms", "Contact"].map((t) => (
-                  <li key={t}>
+                {[
+                  { label: "Privacy", href: `${BASE_PATH}${legalPath("privacy")}` },
+                  { label: "Terms", href: `${BASE_PATH}${legalPath("terms")}` },
+                  {
+                    label: "Medical Disclaimer",
+                    href: `${BASE_PATH}${legalPath("medical-disclaimer")}`,
+                  },
+                  {
+                    label: "Editorial Policy",
+                    href: `${BASE_PATH}${legalPath("editorial-policy")}`,
+                  },
+                  { label: "Contact", href: `mailto:${ORG.contactEmail}` },
+                ].map((l) => (
+                  <li key={l.label}>
                     <a
-                      href="#"
+                      href={l.href}
                       className="text-[0.95rem] font-medium text-ink-600 transition-colors hover:text-brand-600"
                     >
-                      {t}
+                      {l.label}
                     </a>
                   </li>
                 ))}

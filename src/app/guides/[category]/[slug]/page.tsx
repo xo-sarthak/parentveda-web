@@ -8,6 +8,9 @@ import PostBody from "@/components/guides/PostBody";
 import PostCard from "@/components/guides/PostCard";
 import ReadingProgress from "@/components/guides/ReadingProgress";
 import JsonLd from "@/components/guides/JsonLd";
+import ArticleByline from "@/components/guides/ArticleByline";
+import AuthorCard from "@/components/guides/AuthorCard";
+import { authorPath, resolveAuthor, type Author } from "@/lib/authors";
 import {
   GUIDES_BASE,
   categoryPath,
@@ -155,7 +158,12 @@ function buildFaqSchema(faqs: { q: string; a: string }[]) {
   };
 }
 
-function buildJsonLd(post: GuidePost, canonicalAbs: string, ogImageAbs: string) {
+function buildJsonLd(
+  post: GuidePost,
+  canonicalAbs: string,
+  ogImageAbs: string,
+  author?: Author
+) {
   const publisher = {
     "@type": "Organization",
     name: SITE_NAME,
@@ -205,7 +213,18 @@ function buildJsonLd(post: GuidePost, canonicalAbs: string, ogImageAbs: string) 
     description: post.description,
     datePublished: post.date,
     dateModified: post.updated ?? post.date,
-    author: { "@type": "Organization", name: post.author },
+    /* A credentialed Person with a URL Google can crawl is worth far more on
+       YMYL health content than an Organization name. Falls back to the old
+       Organization shape for posts still bylined "Team ParentVeda". */
+    author: author
+      ? {
+          "@type": "Person",
+          name: author.name,
+          url: `${SITE_URL}${authorPath(author.slug)}`,
+          jobTitle: author.role,
+          ...(author.specialties.length ? { knowsAbout: author.specialties } : {}),
+        }
+      : { "@type": "Organization", name: post.author },
     publisher,
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalAbs },
     image: [ogImageAbs],
@@ -228,7 +247,8 @@ export default async function PostPage({
   const related = await getRelatedPosts(post, 3);
   const ogImage = post.ogImage ?? "/parentveda-logo.jpg";
   const ogImageAbs = ogImage.startsWith("http") ? ogImage : `${SITE_URL}${ogImage}`;
-  const baseJsonLd = buildJsonLd(post, `${SITE_URL}${canonical}`, ogImageAbs);
+  const author = resolveAuthor(post);
+  const baseJsonLd = buildJsonLd(post, `${SITE_URL}${canonical}`, ogImageAbs, author);
 
   /* An article with its own FAQ section gets FAQPage alongside Article. The
      parenting-faq category is skipped: buildJsonLd already returns FAQPage
@@ -263,21 +283,13 @@ export default async function PostPage({
               {post.title}
             </h1>
 
-            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">
-              <span>{post.author}</span>
-              {post.date ? (
-                <>
-                  <span className="text-ink-300" aria-hidden>·</span>
-                  <time dateTime={post.date}>{formatDate(post.date)}</time>
-                </>
-              ) : null}
-              {post.readingTime ? (
-                <>
-                  <span className="text-ink-300" aria-hidden>·</span>
-                  <span>{post.readingTime}</span>
-                </>
-              ) : null}
-            </div>
+            <ArticleByline
+              author={author}
+              authorName={post.author}
+              date={post.date || undefined}
+              dateLabel={post.date ? formatDate(post.date) : undefined}
+              readingTime={post.readingTime || undefined}
+            />
           </header>
 
           {/* Book / research citation */}
@@ -349,6 +361,10 @@ export default async function PostPage({
             </p>
           ) : null}
         </article>
+
+        {/* About the author — the second gateway to the profile page. Only
+            renders for posts whose byline resolves to a real Author. */}
+        {author ? <AuthorCard author={author} /> : null}
 
         {/* Soft CTA */}
         <div className="mt-12 flex flex-col items-start gap-3 rounded-card bg-gradient-to-br from-mist via-white to-coral-50 p-7 shadow-card ring-1 ring-brand-500/10 sm:flex-row sm:items-center sm:justify-between">

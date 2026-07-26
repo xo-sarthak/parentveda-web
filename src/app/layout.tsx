@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Plus_Jakarta_Sans, Manrope } from "next/font/google";
+import { Fraunces, Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
 /* Fraunces — soft optical serif for big emotional/marketing moments only */
@@ -17,11 +17,16 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
 });
 
-/* Manrope — body copy, labels, buttons, chips */
-const manrope = Manrope({
+/* Source Serif 4 — body copy.
+   Replaces Manrope, which was clean but cool and neutral; long-form health
+   writing reads warmer and more editorial set in a text serif, and it is what
+   separates a publication from an app screen. UI chrome (buttons, nav, chips,
+   labels) stays on Plus Jakarta — serif is for reading, sans is for
+   interface. See --font-sans in globals.css. */
+const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-manrope",
+  variable: "--font-source-serif",
 });
 
 const SITE_URL = "https://parentveda.in";
@@ -94,7 +99,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${jakarta.variable} ${manrope.variable} antialiased`}
+      className={`${fraunces.variable} ${jakarta.variable} ${sourceSerif.variable} antialiased`}
     >
       <body className="min-h-dvh bg-canvas text-ink-900">{children}</body>
     </html>

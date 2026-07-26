@@ -48,9 +48,22 @@ function blockText(node: React.ReactNode): string {
   return "";
 }
 
+/**
+ * How callouts present themselves.
+ *
+ *  "card"  — the original: a filled, rounded panel the full width of the text
+ *            column. Reads as another block of the article.
+ *  "aside" — a flagged pointer: no fill, a solid accent rule, an icon badge
+ *            that overhangs into the margin, and extra air above and below.
+ *            The point is that it should NOT look like a section the reader
+ *            is meant to work through — it's an annotation on the section
+ *            they're already in.
+ */
+export type CalloutStyle = "card" | "aside";
+
 /* Built per render rather than shared at module scope, because the heading
    anchors and the [TOC] marker both need this specific body. */
-function makeComponents(body: string): Components {
+function makeComponents(body: string, callouts: CalloutStyle = "card"): Components {
   const items = tocItems(body);
 
   /* Mirrors the de-duplication in tocItems so an <h2 id> always matches the
@@ -111,6 +124,71 @@ function makeComponents(body: string): Components {
     if (match) {
       const inner = text.replace(match.prefix, "");
 
+      /* ---- "aside" presentation: a pointer, not a section ---- */
+      if (callouts === "aside") {
+        if (match.kind === "note") {
+          // The medical disclaimer. It has to be present; it does not have to
+          // compete. Quietest thing on the page.
+          return (
+            <p className="callout-note mt-6 border-t border-ink-100 pt-4 text-[0.85rem] leading-relaxed text-ink-400">
+              {inner}
+            </p>
+          );
+        }
+
+        /* Important — a notice bar. Safety information that has to be
+           noticed, so it takes a tint and a flat left edge: the shape of a
+           warning strip, not of another paragraph. */
+        if (match.kind === "important") {
+          return (
+            <aside
+              role="note"
+              className="callout-aside callout-important my-9 rounded-r-2xl border-l-4 border-coral-500 bg-coral-50/70 py-4 pl-5 pr-5"
+            >
+              <p className="flex items-center gap-2 font-heading text-[0.7rem] font-bold uppercase tracking-[0.16em] text-coral-700">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  className="h-3.5 w-3.5"
+                  aria-hidden="true"
+                >
+                  <path d="M12 8v5" />
+                  <path d="M12 16.5h.01" />
+                  <path d="M10.3 3.9 2.4 17.4a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+                </svg>
+                Important
+              </p>
+              <p className="mt-2 text-ink-700">{inner}</p>
+            </aside>
+          );
+        }
+
+        /* Insight — the opposite job. No box at all: a badge in the margin
+           and the line set large in Fraunces italic, so it reads as a moment
+           to pause on rather than a hazard to heed. */
+        return (
+          <aside className="callout-aside callout-insight relative my-10 pl-14">
+            <span
+              aria-hidden="true"
+              className="absolute left-0 top-0 grid h-9 w-9 place-items-center rounded-full bg-brand-50 text-brand-500 ring-1 ring-brand-500/15"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                <path d="M12 2l1.6 5.9L19.5 9.5l-5.9 1.6L12 17l-1.6-5.9L4.5 9.5l5.9-1.6L12 2z" />
+              </svg>
+            </span>
+
+            <p className="font-heading text-[0.7rem] font-bold uppercase tracking-[0.16em] text-brand-500">
+              ParentVeda Insight
+            </p>
+            <p className="mt-2 font-display italic text-brand-900">{inner}</p>
+          </aside>
+        );
+      }
+
+      /* ---- "card" presentation: the original ---- */
       if (match.kind === "important") {
         return (
           <aside
@@ -234,12 +312,19 @@ function makeComponents(body: string): Components {
 const urlTransform = (url: string): string =>
   url.startsWith(FIGURE_SCHEME) ? url : defaultUrlTransform(url);
 
-export default function PostBody({ body }: { body: string }) {
+export default function PostBody({
+  body,
+  callouts = "card",
+}: {
+  body: string;
+  /** See CalloutStyle. Defaults to the original filled panels. */
+  callouts?: CalloutStyle;
+}) {
   return (
     <div className="md-body flex flex-col gap-5">
       <Markdown
         remarkPlugins={[remarkGfm]}
-        components={makeComponents(body)}
+        components={makeComponents(body, callouts)}
         urlTransform={urlTransform}
       >
         {body}
