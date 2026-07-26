@@ -12,13 +12,13 @@
    ============================================================ */
 
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import type { SignupState } from "@/lib/signup";
 
-export type SignupState = {
-  status: "idle" | "ok" | "error";
-  message?: string;
-};
-
-export const SIGNUP_INITIAL: SignupState = { status: "idle" };
+/* NOTE: this file must export the action and NOTHING else. Every export in a
+   "use server" module becomes a callable server endpoint, so a constant or an
+   object here throws on module evaluation — a 500 at submit time that
+   `next build` does not catch. SignupState and SIGNUP_INITIAL live in
+   lib/signup.ts for exactly that reason. */
 
 /* Deliberately loose. Real address validation is delivery, not regex — this
    only rejects what is obviously not an email so we do not store junk. The

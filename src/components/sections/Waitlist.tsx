@@ -8,7 +8,8 @@ import Button from "@/components/ui/Button";
 import Icon from "@/components/brand/Icon";
 import { Blob, Twinkles } from "@/components/brand/Decor";
 import { WAITLIST } from "@/lib/content";
-import { subscribe, SIGNUP_INITIAL } from "@/app/actions/subscribe";
+import { subscribe } from "@/app/actions/subscribe";
+import { SIGNUP_INITIAL } from "@/lib/signup";
 
 /**
  * Waitlist + Newsletter — the primary conversion module (NEW).

@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { subscribe, SIGNUP_INITIAL } from "@/app/actions/subscribe";
+import { subscribe } from "@/app/actions/subscribe";
+import { SIGNUP_INITIAL } from "@/lib/signup";
 
 /**
  * Footer newsletter mini-form — newsletter-only entry point.

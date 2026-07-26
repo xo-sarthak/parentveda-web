@@ -85,6 +85,15 @@ alter table public.waitlist_signups enable row level security;
 
 revoke all on public.waitlist_signups from anon, authenticated;
 
+-- Grant the server role explicitly.
+--
+-- Do NOT rely on Supabase's default privileges here. `service_role` has the
+-- BYPASSRLS attribute, but bypassing row-level security is not the same thing
+-- as holding a table GRANT — without this the server gets a bare
+-- "permission denied for table waitlist_signups" even though the key is
+-- perfectly valid, which is a genuinely confusing failure to debug.
+grant select, insert, update, delete on public.waitlist_signups to service_role;
+
 -- ------------------------------------------------------------
 -- Check it worked. Expect: rowsecurity = true, and zero policies.
 -- ------------------------------------------------------------
