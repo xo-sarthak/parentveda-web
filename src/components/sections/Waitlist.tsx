@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import Section from "@/components/ui/Section";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Reveal from "@/components/ui/Reveal";
@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import Icon from "@/components/brand/Icon";
 import { Blob, Twinkles } from "@/components/brand/Decor";
 import { WAITLIST } from "@/lib/content";
+import { subscribe, SIGNUP_INITIAL } from "@/app/actions/subscribe";
 
 /**
  * Waitlist + Newsletter — the primary conversion module (NEW).
@@ -15,19 +16,20 @@ import { WAITLIST } from "@/lib/content";
  * One email field + two intent boxes (waitlist / newsletter), both pre-checked,
  * with "at least one must be checked" enforced. A honeypot guards against bots.
  *
- * NOTE (developer): this currently confirms client-side only. To wire the real
- * flow, POST to `/api/subscribe` with:
- *   { email, waitlist: boolean, newsletter: boolean, source: "waitlist-section" }
- * then move to a tagged, double-opt-in list (Brevo / Kit / Resend). The Ask Veda
- * form and the footer newsletter mini-form should feed the same endpoint with
- * their own `source` tag. See §11 of the landing-page spec for the full contract.
+ * Submits to the `subscribe` server action, which writes to Supabase with the
+ * service-role key — the public key cannot touch that table. The footer's
+ * NewsletterMini posts to the same action with its own `source` tag.
+ *
+ * Still to come: an email provider (Brevo / Kit / Resend) for double opt-in
+ * and the actual weekly letter. Storing an address is not sending to it, so
+ * the success copy deliberately does not promise an inbox.
  */
 export default function Waitlist() {
   const [email, setEmail] = useState("");
   const [waitlist, setWaitlist] = useState(true);
   const [newsletter, setNewsletter] = useState(true);
   const [trap, setTrap] = useState(""); // honeypot — real users never fill this
-  const [sent, setSent] = useState(false);
+  const [state, formAction, pending] = useActionState(subscribe, SIGNUP_INITIAL);
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const canSubmit = emailOk && (waitlist || newsletter) && trap === "";
@@ -58,19 +60,18 @@ export default function Waitlist() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            {sent ? (
-              <p className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-brand-50 px-4 py-3.5 text-sm font-semibold text-brand-700 ring-1 ring-brand-500/15">
+            {state.status === "ok" ? (
+              <p className="mt-8 inline-flex items-start gap-2 rounded-2xl bg-brand-50 px-4 py-3.5 text-sm font-semibold text-brand-700 ring-1 ring-brand-500/15">
                 <span className="text-coral-500">🌸</span>
                 {WAITLIST.success}
               </p>
             ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (canSubmit) setSent(true);
-                }}
-                className="mt-8"
-              >
+              <form action={formAction} className="mt-8">
+                {/* The checkboxes below are custom controls with no `name`, so
+                    their values reach the action through these instead. */}
+                <input type="hidden" name="wants_waitlist" value={String(waitlist)} />
+                <input type="hidden" name="wants_newsletter" value={String(newsletter)} />
+                <input type="hidden" name="source" value="waitlist-section" />
                 {/* honeypot — visually hidden, off-screen, not tabbable */}
                 <div aria-hidden className="absolute left-[-9999px] top-[-9999px] h-0 w-0 overflow-hidden">
                   <label htmlFor="company">Company</label>
@@ -90,8 +91,11 @@ export default function Waitlist() {
                 </label>
                 <input
                   id="waitlist-email"
+                  name="email"
                   type="email"
                   required
+                  autoComplete="email"
+                  disabled={pending}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your email"
@@ -116,12 +120,16 @@ export default function Waitlist() {
                 </div>
 
                 <div className="mt-5">
-                  <Button type="submit" size="lg" disabled={!canSubmit} className="w-full sm:w-auto">
-                    {WAITLIST.button}
+                  <Button type="submit" size="lg" disabled={!canSubmit || pending} className="w-full sm:w-auto">
+                    {pending ? "Just a moment…" : WAITLIST.button}
                   </Button>
                 </div>
 
-                {!waitlist && !newsletter ? (
+                {state.status === "error" ? (
+                  <p role="alert" className="mt-2.5 text-xs font-semibold text-coral-700">
+                    {state.message}
+                  </p>
+                ) : !waitlist && !newsletter ? (
                   <p className="mt-2.5 text-xs font-semibold text-coral-700">
                     Pick at least one — the launch heads-up or the weekly letter.
                   </p>

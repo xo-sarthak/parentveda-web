@@ -356,7 +356,10 @@ export const WAITLIST = {
   newsletterLabel: "Send me the weekly gentle letter — recipes, ragas & calm reads",
   button: "Join the waitlist",
   micro: "No spam, ever · unsubscribe any time · your email stays private.",
-  success: "Almost there — check your inbox for a gentle confirmation. 🌸",
+  /* Honest by design. We store the address; we do not yet send anything to
+     it, so this must not promise an inbox. Change it the day double opt-in
+     goes live and not a day sooner. */
+  success: "You're on the list — we'll write to you the day ParentVeda opens. 🌸",
 } as const;
 
 /* — Footer — */
