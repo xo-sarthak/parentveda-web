@@ -65,7 +65,7 @@ export const metadata: Metadata = {
         url: "/parentveda-logo.jpg",
         width: 1024,
         height: 1024,
-        alt: "ParentVeda — Nurturing Wisdom",
+        alt: "ParentVeda, Nurturing Wisdom",
       },
     ],
   },

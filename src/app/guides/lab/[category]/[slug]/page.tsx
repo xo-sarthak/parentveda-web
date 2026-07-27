@@ -342,7 +342,7 @@ export default async function LabPostPage({
                   Want this gentle guidance in your pocket?
                 </p>
                 <p className="mt-1 text-sm text-ink-600">
-                  ParentVeda is launching soon — join the waitlist to be first.
+                  ParentVeda is launching soon. Join the waitlist to be first.
                 </p>
               </div>
               <Link

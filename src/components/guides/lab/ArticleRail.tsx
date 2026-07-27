@@ -124,18 +124,18 @@ export default function ArticleRail({
                   <a
                     href={`#${it.id}`}
                     aria-current={active ? "true" : undefined}
-                    className={`block py-2 pl-4 pr-2 text-[0.86rem] leading-snug transition-colors ${
+                    className={`block rounded-r-lg py-2 pl-4 pr-2 text-[0.86rem] leading-snug transition-colors ${
                       active
-                        ? "font-semibold text-brand-700"
-                        : "text-ink-500 hover:text-brand-600"
+                        ? "bg-brand-50 font-semibold text-brand-700"
+                        : "text-ink-500 hover:bg-mist/60 hover:text-brand-600"
                     }`}
                   >
-                    {/* Flat marker, no gradient — the rule fills solid brand
-                        purple for the section being read and stays quiet
-                        otherwise. */}
+                    {/* Three things mark the current section, not one: a solid
+                        brand rule, a tinted row, and weight. A 2px rule alone
+                        was too quiet to find at a glance while scrolling. */}
                     <span
                       aria-hidden="true"
-                      className={`absolute left-[-1px] top-1 h-[calc(100%-0.5rem)] w-[2px] rounded-full transition-colors ${
+                      className={`absolute left-[-1px] top-0 h-full w-[3px] rounded-full transition-colors ${
                         active ? "bg-brand-500" : "bg-transparent"
                       }`}
                     />

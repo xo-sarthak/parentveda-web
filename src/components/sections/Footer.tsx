@@ -51,7 +51,7 @@ export default function Footer() {
           <div className="max-w-sm">
             <Logo size={40} wordmarkClassName="text-[1.3rem]" />
             <p className="mt-4 text-pretty leading-relaxed text-ink-600">
-              Nurturing Wisdom — aapka calm companion through every week of pregnancy.
+              Nurturing Wisdom, aapka calm companion through every week of pregnancy.
               Bilingual, rooted, and made with love for Indian parents.
             </p>
             <div className="mt-5 flex items-center gap-2.5">
@@ -133,7 +133,7 @@ export default function Footer() {
         <div className="mt-12 flex flex-col gap-3 border-t border-brand-500/10 pt-6 text-sm text-ink-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 ParentVeda · Made with <span className="text-coral-500">❤</span> in India.</p>
           <p className="max-w-md text-xs leading-relaxed text-ink-400 sm:text-right">
-            ParentVeda offers gentle, evidence-informed guidance — not medical advice.
+            ParentVeda offers gentle, evidence-informed guidance, not medical advice.
             Always consult your doctor.
           </p>
         </div>

@@ -370,7 +370,7 @@ export default async function PostPage({
         <div className="mt-12 flex flex-col items-start gap-3 rounded-card bg-gradient-to-br from-mist via-white to-coral-50 p-7 shadow-card ring-1 ring-brand-500/10 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-heading text-lg font-bold text-ink-900">Want this gentle guidance in your pocket?</p>
-            <p className="mt-1 text-sm text-ink-600">ParentVeda is launching soon — join the waitlist to be first.</p>
+            <p className="mt-1 text-sm text-ink-600">ParentVeda is launching soon. Join the waitlist to be first.</p>
           </div>
           <Link
             href="/#waitlist"

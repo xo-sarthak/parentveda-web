@@ -69,6 +69,14 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
   /* Mirrors the de-duplication in tocItems so an <h2 id> always matches the
      href the contents list generated for it. H2s render in document order,
      which is what keeps the two counters in step. */
+  /* "What matters most" is a summary box, not another section — see
+     .takeaways-* in globals.css. The heading and its list are siblings, so the
+     heading raises a flag that the next list consumes. This relies on blocks
+     rendering in document order, the same assumption the heading counter below
+     already makes. Any paragraph in between clears it. */
+  const TAKEAWAYS_HEADING = /^(what matters most|key takeaways|the short version)$/i;
+  let takeawaysNext = false;
+
   const used = new Map<string, number>();
   const nextHeadingId = (text: string) => {
     const base = headingSlug(text);
@@ -78,14 +86,21 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
   };
 
   return {
-  h2: ({ children }) => (
-    <h2
-      id={nextHeadingId(blockText(children))}
-      className="mt-3 scroll-mt-24 font-display text-[1.6rem] font-medium leading-snug tracking-[-0.01em] text-ink-900"
-    >
-      {children}
-    </h2>
-  ),
+  h2: ({ children }) => {
+    const text = blockText(children).trim();
+    const isTakeaways = TAKEAWAYS_HEADING.test(text);
+    takeawaysNext = isTakeaways;
+    return (
+      <h2
+        id={nextHeadingId(blockText(children))}
+        className={`scroll-mt-24 font-display text-ink-900 ${
+          isTakeaways ? "takeaways-heading" : "mt-3 text-[1.6rem] font-medium leading-snug tracking-[-0.01em]"
+        }`}
+      >
+        {children}
+      </h2>
+    );
+  },
   h3: ({ children }) => (
     <h3 className="mt-2 font-heading text-[1.15rem] font-bold tracking-tight text-ink-900">
       {children}
@@ -106,7 +121,13 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
 
     return <p className="text-pretty text-[1.05rem] leading-relaxed text-ink-700">{children}</p>;
   },
-  ul: ({ children }) => <ul className="flex flex-col gap-2.5">{children}</ul>,
+  ul: ({ children }) => {
+    const takeaways = takeawaysNext;
+    takeawaysNext = false;
+    return (
+      <ul className={`flex flex-col gap-2.5 ${takeaways ? "takeaways-list" : ""}`}>{children}</ul>
+    );
+  },
   ol: ({ children }) => <ol className="flex flex-col gap-3">{children}</ol>,
   // One markup shape for both list kinds; globals.css styles .md-marker as a
   // coral dot inside ul and a numbered brand chip inside ol (CSS counter),
@@ -143,7 +164,7 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
           return (
             <aside
               role="note"
-              className="callout-aside callout-important my-9 rounded-r-2xl border-l-4 border-coral-500 bg-coral-50/70 py-4 pl-5 pr-5"
+              className="callout-aside callout-important my-4 rounded-r-2xl border-l-4 border-coral-500 bg-coral-50/70 py-4 pl-5 pr-5"
             >
               <p className="flex items-center gap-2 font-heading text-[0.7rem] font-bold uppercase tracking-[0.16em] text-coral-700">
                 <svg
@@ -170,7 +191,7 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
            and the line set large in Fraunces italic, so it reads as a moment
            to pause on rather than a hazard to heed. */
         return (
-          <aside className="callout-aside callout-insight relative my-10 pl-14">
+          <aside className="callout-aside callout-insight relative my-5 pl-14">
             <span
               aria-hidden="true"
               className="absolute left-0 top-0 grid h-9 w-9 place-items-center rounded-full bg-brand-50 text-brand-500 ring-1 ring-brand-500/15"
@@ -180,10 +201,10 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
               </svg>
             </span>
 
-            <p className="font-heading text-[0.7rem] font-bold uppercase tracking-[0.16em] text-brand-500">
+            <p className="font-heading text-[0.78rem] font-extrabold uppercase tracking-[0.18em] text-brand-600">
               ParentVeda Insight
             </p>
-            <p className="mt-2 font-display italic text-brand-900">{inner}</p>
+            <p className="mt-2.5 font-display italic text-brand-800">{inner}</p>
           </aside>
         );
       }
@@ -289,19 +310,26 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
       {children}
     </code>
   ),
+  /* Tables carry comparison content (treatment options, timelines), so they
+     need to be scannable across a row. Solid brand header, generous cells, a
+     zebra tint to hold the eye on a line, and the first column set in the UI
+     face so the thing being compared reads as the row's label. */
   table: ({ children }) => (
-    <div className="overflow-x-auto rounded-2xl ring-1 ring-brand-500/10">
+    <div className="my-4 overflow-x-auto rounded-card ring-1 ring-brand-500/10">
       <table className="w-full border-collapse text-left text-[0.95rem]">{children}</table>
     </div>
   ),
   th: ({ children }) => (
-    <th className="border-b border-brand-500/10 bg-mist/60 px-4 py-2.5 font-heading text-[0.8rem] font-bold uppercase tracking-wide text-ink-700">
+    <th className="bg-brand-600 px-5 py-3.5 font-heading text-[0.72rem] font-bold uppercase tracking-[0.1em] text-white">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="border-b border-brand-500/[0.06] px-4 py-2.5 text-ink-700">{children}</td>
+    <td className="border-b border-brand-500/[0.08] px-5 py-4 align-top leading-relaxed text-ink-700 [&:first-child]:font-heading [&:first-child]:font-bold [&:first-child]:text-ink-900">
+      {children}
+    </td>
   ),
+  tr: ({ children }) => <tr className="even:bg-mist/40">{children}</tr>,
   };
 }
 

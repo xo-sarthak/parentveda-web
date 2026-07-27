@@ -92,7 +92,7 @@ export const AUTHORS: Author[] = [
       "Indian Medical Association",
     ],
     experience: "42 years in healthcare",
-    registration: "Delhi Medical Council — 15446",
+    registration: "Delhi Medical Council, 15446",
     languages: ["English", "Hindi"],
     practice: "Child Care",
   },

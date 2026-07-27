@@ -230,30 +230,29 @@ h1, h2, h3, h4, h5, h6 {
 .md-body ol > li {
   counter-increment: md-counter;
 }
+/* Plain "1." rather than a filled circle. The chip competed with the coral
+   bullet used for unordered lists and made a six-step sequence look like six
+   badges. A numeral does the same job quietly. */
 .md-body ol > li > .md-marker {
-  margin-top: calc((var(--md-li-line) - 1.5rem) / 2);
-  display: grid;
-  place-items: center;
-  height: 1.5rem;
-  width: 1.5rem;
+  display: block;
   flex-shrink: 0;
-  border-radius: 9999px;
-  background: var(--color-brand-50);
+  min-width: 1.25rem;
+  text-align: right;
   color: var(--color-brand-600);
-  font-size: 0.75rem;
+  font-family: var(--font-heading);
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1;
+  line-height: inherit;
 }
 .md-body ol > li > .md-marker::before {
-  content: counter(md-counter);
+  content: counter(md-counter) ".";
 }
 
-/* The opening paragraph reads as an editorial lead — a touch larger, no more
-   than that. (There was a Fraunces drop cap here; it fired on every separate
-   body fragment, including the disclaimer, and read as decoration.) */
-.md-body > p:first-of-type {
-  font-size: 1.18rem;
-}
+/* NOTE: there is deliberately no special styling for the opening paragraph.
+   A larger lead was tried and removed. Because every separate body fragment
+   is its own .md-body — the disclaimer, and each FAQ answer — `p:first-of-type`
+   matched all of them, so five FAQ answers rendered a size larger than the
+   article they sit in. One body size, everywhere. */
 
 /* ============================================================
    Keyframes — all gentle, slow, looping
@@ -344,8 +343,11 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.14;
   letter-spacing: -0.03em;
   color: var(--color-ink-900);
-  margin-top: 3.5rem;
-  padding-top: 2.25rem;
+  /* The body is a flex column with a 1.25rem gap, and that gap ADDS to these
+     margins — the reason the spacing above headings and around callouts read
+     as random holes. Values below are the space that remains AFTER the gap. */
+  margin-top: 2rem;
+  padding-top: 1.75rem;
   border-top: 1px solid var(--color-ink-100);
 }
 .md-body h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
@@ -382,6 +384,34 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.7;
   color: var(--color-ink-400);
 }
+
+/* ---- Key takeaways box (item: "What matters most") ---------------------
+   The heading and its list are siblings inside a flex column, so they cannot
+   be wrapped in one element by the Markdown renderer. Instead they are styled
+   as the two halves of a single box, and the heading's negative bottom margin
+   cancels the flex gap so the halves meet. */
+.md-body .takeaways-heading {
+  margin-top: 2rem;
+  margin-bottom: calc(-1.25rem - 1px); /* cancel the flex gap, and the seam */
+  padding: 1.4rem 1.6rem 0.9rem;
+  border-top: 0;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--color-brand-50);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--font-heading);
+  color: var(--color-brand-700);
+}
+.md-body .takeaways-list {
+  margin: 0;
+  padding: 0 1.6rem 1.5rem;
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  background: var(--color-brand-50);
+}
+.md-body .takeaways-list li { color: var(--color-ink-800); }
+.md-body .takeaways-list > li > .md-marker { background: var(--color-brand-400); }
 
 /* ---- FAQ accordion --------------------------------------------------------
    Smooth open/close with no JavaScript. `interpolate-size` makes `auto` an
