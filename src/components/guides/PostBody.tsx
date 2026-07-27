@@ -204,7 +204,7 @@ function makeComponents(body: string, callouts: CalloutStyle = "card"): Componen
             <p className="font-heading text-[0.78rem] font-extrabold uppercase tracking-[0.18em] text-brand-600">
               ParentVeda Insight
             </p>
-            <p className="mt-2.5 font-display italic text-brand-800">{inner}</p>
+            <p className="mt-2.5 font-display text-[1.28rem] italic leading-snug text-brand-600">{inner}</p>
           </aside>
         );
       }

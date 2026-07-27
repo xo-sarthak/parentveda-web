@@ -268,11 +268,14 @@ export default async function LabPostPage({
         </header>
 
         <div className="max-w-3xl">
+          {/* No visible caption. The alt text still rides on the <img> for
+              screen readers; repeating it on screen just described the picture
+              to people who can already see it. `credit` is for a real
+              photographer or illustrator credit, not for alt text. */}
           <ArticleHero
             src={post.ogImage}
             figure={post.ogImage ? undefined : LAB_HERO_FIGURE}
             alt={post.ogImageAlt}
-            credit={post.ogImageAlt ?? LAB_HERO_CREDIT}
           />
         </div>
 
