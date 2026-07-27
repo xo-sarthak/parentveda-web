@@ -371,9 +371,26 @@ h1, h2, h3, h4, h5, h6 {
      Insight    a badge and a big italic — a moment, not a warning
      Note       hairline fine print   — the disclaimer, present but quiet
    Their own type sizing wins over the body rules above. */
-.md-body .callout-aside p { font-size: inherit; line-height: inherit; color: inherit; }
-.md-body .callout-important p:last-child { font-size: 0.95rem; line-height: 1.7; }
-.md-body .callout-insight p:last-child { font-size: 1.28rem; line-height: 1.45; }
+/* Colours are set HERE, not with Tailwind text-* classes on the elements.
+   `.md-body p` is unlayered CSS and beats any utility class, so a text-brand-600
+   on the label was silently doing nothing — the label rendered ink-coloured
+   while the class said purple. Anything that needs to override the body colour
+   inside a callout has to win the same fight, in the same place. */
+.md-body .callout-aside p { font-size: inherit; line-height: inherit; }
+
+.md-body .callout-important p:first-child { color: var(--color-coral-700); }
+.md-body .callout-important p:last-child {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--color-ink-700);
+}
+
+.md-body .callout-insight p:first-child { color: var(--color-brand-600); }
+.md-body .callout-insight p:last-child {
+  font-size: 1.28rem;
+  line-height: 1.45;
+  color: var(--color-brand-600);
+}
 
 /* Placed last so it beats `.md-body > p:first-of-type` on source order — the
    disclaimer renders as its own fragment and would otherwise pick up the
