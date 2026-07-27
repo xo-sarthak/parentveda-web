@@ -98,18 +98,6 @@ export const AUTHORS: Author[] = [
   },
 ];
 
-/* ---------------- Pilot override ----------------
-   TEMPORARY. Maps "<category>/<slug>" to an author slug, overriding whatever
-   the post's `author` string says. It exists only so the unlisted preview
-   article can show the finished byline before anyone edits Directus.
-
-   To retire it: set that post's `author` field in Directus to the author's
-   `name` (e.g. "Dr. Mahender Singh") and delete the entry below. Resolution
-   then happens by name for every post, with no special cases. */
-const PILOT_AUTHOR_BY_POST: Record<string, string> = {
-  "article/ectopic-pregnancy-preview-x7k2": "dr-mahender-singh",
-};
-
 /* ---------------- Lookup ---------------- */
 
 export function getAuthorBySlug(slug: string): Author | undefined {
@@ -124,14 +112,14 @@ export function getAuthorByName(name: string): Author | undefined {
 /**
  * The profile behind a post's byline, or undefined for a plain-string author
  * like "Team ParentVeda" (which renders as unlinked text, exactly as before).
+ *
+ * Resolution is purely by name now. There was a PILOT_AUTHOR_BY_POST map here
+ * that pinned the ectopic preview to Dr. Mahender Singh, because that post's
+ * `author` field in Directus still said "Team ParentVeda" and nothing could
+ * write to it. The field is set correctly, so the special case is gone.
  */
-export function resolveAuthor(post: {
-  category: string;
-  slug: string;
-  author: string;
-}): Author | undefined {
-  const pilot = PILOT_AUTHOR_BY_POST[`${post.category}/${post.slug}`];
-  return pilot ? getAuthorBySlug(pilot) : getAuthorByName(post.author);
+export function resolveAuthor(post: { author: string }): Author | undefined {
+  return getAuthorByName(post.author);
 }
 
 export function authorPath(slug: string): string {
