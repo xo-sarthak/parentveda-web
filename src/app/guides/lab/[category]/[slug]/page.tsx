@@ -226,7 +226,7 @@ export default async function LabPostPage({
       {/* Body copy inherits the test typeface; anything that opts into
           font-display / font-heading (the H1, H2s, card titles) keeps
           Fraunces and Plus Jakarta as before. */}
-      <div className="mx-auto max-w-[1180px]">
+      <div className="mx-auto max-w-[1216px]">
         <Breadcrumbs
           trail={[
             { name: "Home", href: "/" },
@@ -276,7 +276,13 @@ export default async function LabPostPage({
           />
         </div>
 
-        <div className="mt-12 grid gap-10 lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-14">
+        {/* Measured against iMumz, whose scroll behaviour this follows: a 346px
+            sticky rail, an 80px gutter, and a text column that FILLS the space
+            it is given (790px on their page). 346 + 80 + 790 = 1216, which is
+            why the container above is 1216 rather than a round number — every
+            edge then lines up and the only whitespace left is symmetric page
+            margin. */}
+        <div className="mt-12 grid gap-10 lg:grid-cols-[346px_minmax(0,1fr)] lg:gap-20">
           <ArticleRail items={items} shareUrl={shareUrl} shareTitle={post.title} />
 
           <div className="min-w-0">

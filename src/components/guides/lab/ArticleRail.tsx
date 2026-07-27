@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import type { TocItem } from "@/components/guides/Toc";
 import ShareArticle from "./ShareArticle";
 
@@ -86,7 +85,13 @@ export default function ArticleRail({
   if (!items.length) return null;
 
   return (
-    <aside className="lg:sticky lg:top-24">
+    /* `self-start` is load-bearing, not decoration.
+       This is a grid item, and grid items stretch to fill their row by
+       default — so without it the aside is as tall as the whole article and
+       `sticky` has no range to move within. It then behaves exactly like a
+       static block and scrolls away, which looks like sticky "not working".
+       Sized to its contents, it pins under the header for the whole read. */
+    <aside className="lg:sticky lg:top-24 lg:self-start">
       <details
         open
         className="group rounded-card bg-surface p-5 ring-1 ring-brand-500/10 [&_summary::-webkit-details-marker]:hidden"
@@ -147,26 +152,6 @@ export default function ArticleRail({
         <ShareArticle url={shareUrl} title={shareTitle} />
       </div>
 
-      {/* The rail is sticky and shorter than the viewport, so from roughly the
-          second screen down the whole left column sits empty. Rather than
-          leave a void — or hand it straight to an ad — it gets one quiet card.
-          It is the natural slot for a promo later; keeping something useful in
-          it now means the layout is already designed for that, instead of an
-          ad being dropped into a hole. */}
-      <div className="mt-8 hidden rounded-card border-l-[3px] border-brand-500 bg-mist/60 px-5 py-5 lg:block">
-        <p className="font-heading text-[0.68rem] font-bold uppercase tracking-[0.16em] text-brand-600">
-          Launching soon
-        </p>
-        <p className="mt-2 text-[0.9rem] leading-relaxed text-ink-600">
-          A calmer, more rooted pregnancy — week by week, in your pocket.
-        </p>
-        <Link
-          href="/#waitlist"
-          className="mt-4 inline-flex h-10 items-center justify-center rounded-btn bg-brand-500 px-4 font-heading text-[0.85rem] font-semibold text-white transition-colors hover:bg-brand-600"
-        >
-          Join the Waitlist
-        </Link>
-      </div>
     </aside>
   );
 }

@@ -318,10 +318,18 @@ h1, h2, h3, h4, h5, h6 {
 .md-body {
   /* Line box for list items — the marker offsets further up derive from it. */
   --md-li-line: calc(1.08rem * 1.75);
-  /* Measure. The single biggest readability lever, and the one thing neither
-     reference site gets right: line length, not size. Past ~75 characters the
-     eye starts losing the return. */
-  max-width: 68ch;
+  /* Measure is set by the CONTAINER, not here.
+
+     There was a `max-width: 68ch` on this element. It was well meant — past
+     ~75 characters the eye starts losing the line return — but it fought the
+     layout instead of shaping it. The article column is 784px and the text
+     stopped at ~612px, so ~170px sat empty INSIDE the column, between the end
+     of the text and the page margin. Asymmetric dead space reads as a broken
+     grid, which is worse than a slightly long line.
+
+     Letting the column own the measure keeps every edge aligned: narrow the
+     container to tighten the line, widen it to relax it, and the whitespace
+     that remains is symmetric page margin, which reads as deliberate. */
 }
 
 .md-body p { font-size: 1.12rem; line-height: 1.78; color: var(--color-ink-800); }
