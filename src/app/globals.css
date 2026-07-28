@@ -68,12 +68,14 @@
      high saturation produced something that read as a warning — a saturated
      red-leaning hue is quite literally how alert colours are built.
 
-     This pulls the hue AWAY from red toward magenta (347 -> 338) and drops the
-     saturation (79% -> 68%), which is what makes it read as pink rather than
-     as an alarm. Contrast is earned from SIZE, not darkness: the heading is
-     1.2rem bold, which counts as large text, where the bar is 3:1. This is
-     3.89:1. */
-  --color-logo-pink-deep: #da3e77; /* hsl(338, 68%, 55%) */
+     The fix is the hue, not the lightness. Pulled well away from red toward
+     magenta (347 -> 331), it reads as pink, and at that hue it can also be
+     darkened without turning brown — which is exactly what went wrong the
+     first time at 347deg. Deeper and pinker at once.
+
+     5.17:1 on the tint, so it now passes at ANY text size; the 1.2rem heading
+     no longer depends on the large-text exemption to be readable. */
+  --color-logo-pink-deep: #c31d6d; /* hsl(331, 74%, 44%) */
 
   /* — Utility brand colors — */
   --color-wa: #25d366; /* WhatsApp green — ONLY for the WhatsApp CTA */
@@ -451,7 +453,9 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-logo-pink-tint);
 }
 .md-body .takeaways-list li { color: var(--color-ink-800); }
-.md-body .takeaways-list > li > .md-marker { background: var(--color-logo-pink); }
+/* The dots sit in the same hue family as the heading rather than the mark's
+   own 347deg pink, which read noticeably redder beside it. */
+.md-body .takeaways-list > li > .md-marker { background: #e8558f; }
 
 /* ---- FAQ accordion --------------------------------------------------------
    Smooth open/close with no JavaScript. `interpolate-size` makes `auto` an
