@@ -7,6 +7,7 @@ import JsonLd from "@/components/guides/JsonLd";
 import {
   CATEGORIES,
   GUIDES_BASE,
+  GUIDES_NAME,
   categoryPath,
   getCategory,
   getPostsByCategory,
@@ -44,7 +45,7 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       url: `${SITE_URL}${canonical}`,
-      title: `${category.name} · ParentVeda Guides`,
+      title: `${category.name} · ParentVeda ${GUIDES_NAME}`,
       description: category.description,
     },
   };
@@ -65,7 +66,7 @@ export default async function CategoryPage({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${category.name} — ParentVeda Guides`,
+    name: `${category.name} · ParentVeda ${GUIDES_NAME}`,
     description: category.description,
     url: `${SITE_URL}${canonical}`,
     mainEntity: {
@@ -84,7 +85,7 @@ export default async function CategoryPage({
       <Breadcrumbs
         trail={[
           { name: "Home", href: "/" },
-          { name: "Guides", href: GUIDES_BASE },
+          { name: GUIDES_NAME, href: GUIDES_BASE },
           { name: category.name, href: canonical },
         ]}
       />

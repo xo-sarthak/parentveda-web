@@ -23,7 +23,7 @@ export default async function GuidesHeader() {
               href={GUIDES_BASE}
               className="rounded-full px-3 py-2 text-sm font-semibold text-ink-600 transition-colors hover:text-brand-600"
             >
-              All Guides
+              All Reads
             </Link>
             {categories.map((c) => (
               <Link

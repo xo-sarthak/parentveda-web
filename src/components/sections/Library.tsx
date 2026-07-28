@@ -61,7 +61,7 @@ export default function Library() {
             className="inline-flex rounded-full bg-white p-1.5 shadow-soft ring-1 ring-brand-500/10"
           >
             <TabButton active={tab === "articles"} onClick={() => setTab("articles")} icon="book">
-              Articles &amp; Guides
+              Articles &amp; Reads
             </TabButton>
             <TabButton active={tab === "recipes"} onClick={() => setTab("recipes")} icon="bowl">
               Recipes &amp; Nushkhe

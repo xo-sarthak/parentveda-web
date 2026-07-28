@@ -7,13 +7,13 @@ import PostCard from "@/components/guides/PostCard";
 import JsonLd from "@/components/guides/JsonLd";
 import AuthorAvatar from "@/components/guides/AuthorAvatar";
 import { AUTHORS, authorPath, getAuthorBySlug, resolveAuthor, type Author } from "@/lib/authors";
-import { GUIDES_BASE, getAllPosts } from "@/lib/guides";
+import { GUIDES_BASE, GUIDES_NAME, getAllPosts } from "@/lib/guides";
 import { SITE_URL } from "@/lib/site";
 
 /**
- * /guides/authors/[slug] — the author profile page.
+ * /reads/authors/[slug] — the author profile page.
  *
- * Route note: this sits *beside* /guides/[category], and Next.js resolves the
+ * Route note: this sits *beside* /reads/[category], and Next.js resolves the
  * static "authors" segment ahead of the dynamic [category] one, so it wins.
  * The only way to break that is to create a real category with the slug
  * "authors" in Directus — don't.
@@ -130,7 +130,7 @@ export default async function AuthorPage({
         <Breadcrumbs
           trail={[
             { name: "Home", href: "/" },
-            { name: "Guides", href: GUIDES_BASE },
+            { name: GUIDES_NAME, href: GUIDES_BASE },
             { name: author.name, href: canonical },
           ]}
         />

@@ -29,7 +29,7 @@ export default function AuthorCard({
   profileHref?: string;
   /**
    * "solid" drops the three-stop wash and the gradient accent rail for a flat
-   * surface and one brand purple. Used by the /guides/lab layout, where the
+   * surface and one brand purple. Used by the /reads/lab layout, where the
    * house rule is a single consistent purple rather than gradients.
    */
   variant?: "gradient" | "solid";

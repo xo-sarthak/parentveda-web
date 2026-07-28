@@ -17,6 +17,7 @@ import { headingSlug } from "@/lib/headings";
 import { resolveAuthor } from "@/lib/authors";
 import {
   GUIDES_BASE,
+  GUIDES_NAME,
   categoryPath,
   getCategory,
   getPost,
@@ -26,14 +27,14 @@ import {
 import { SITE_URL } from "@/lib/site";
 
 /* ============================================================
-   /guides/lab/[category]/[slug] — LAYOUT SANDBOX.
+   /reads/lab/[category]/[slug] — LAYOUT SANDBOX.
 
    A second rendering of an existing post, so a change can be looked at beside
    the live article rather than argued about in the abstract. Same content,
    same Supabase row, different layout:
 
-     /guides/article/<slug>       ← what we ship today
-     /guides/lab/article/<slug>   ← this
+     /reads/article/<slug>       ← what we ship today
+     /reads/lab/article/<slug>   ← this
 
    What's different here, and why:
 
@@ -159,7 +160,6 @@ function splitFaqSection(md: string): {
    In production this slot takes post.ogImage; set og_image on the post and
    delete this. */
 const LAB_HERO_FIGURE = "ectopic-implantation";
-const LAB_HERO_CREDIT = "Illustration by ParentVeda";
 
 export async function generateMetadata({
   params,
@@ -191,7 +191,7 @@ export default async function LabPostPage({
   params: Promise<{ category: string; slug: string }>;
 }) {
   const { category: categorySlug, slug } = await params;
-  const labProfile = (slugName: string) => `/guides/lab/authors/${slugName}`;
+  const labProfile = (slugName: string) => `/reads/lab/authors/${slugName}`;
   const post = await getPost(categorySlug, slug);
   if (!post) notFound();
 
@@ -230,7 +230,7 @@ export default async function LabPostPage({
         <Breadcrumbs
           trail={[
             { name: "Home", href: "/" },
-            { name: "Guides", href: GUIDES_BASE },
+            { name: GUIDES_NAME, href: GUIDES_BASE },
             { name: category.name, href: categoryPath(category.slug) },
             { name: post.title, href: canonical },
           ]}

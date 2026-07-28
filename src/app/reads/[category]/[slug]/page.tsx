@@ -13,6 +13,7 @@ import AuthorCard from "@/components/guides/AuthorCard";
 import { authorPath, resolveAuthor, type Author } from "@/lib/authors";
 import {
   GUIDES_BASE,
+  GUIDES_NAME,
   categoryPath,
   getAllPosts,
   getCategory,
@@ -263,7 +264,7 @@ export default async function PostPage({
         <Breadcrumbs
           trail={[
             { name: "Home", href: "/" },
-            { name: "Guides", href: GUIDES_BASE },
+            { name: GUIDES_NAME, href: GUIDES_BASE },
             { name: category.name, href: categoryPath(category.slug) },
             { name: post.title, href: canonical },
           ]}

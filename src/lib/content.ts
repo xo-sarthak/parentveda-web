@@ -31,7 +31,7 @@ export const NAV_LINKS = [
 export const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Features", href: "#features" },
-  { label: "Guides", href: `${BASE_PATH}/guides` },
+  { label: "Reads", href: `${BASE_PATH}/reads` },
   { label: "Ask Veda", href: "#ask-veda" },
   { label: "FAQ", href: "#faq" },
 ] as const;
@@ -378,7 +378,7 @@ export const FOOTER_LINKS = [
 export const FOOTER_LINKS = [
   { label: "About", href: `${BASE_PATH}/#about` },
   { label: "Features", href: `${BASE_PATH}/#features` },
-  { label: "Guides", href: `${BASE_PATH}/guides` },
+  { label: "Reads", href: `${BASE_PATH}/reads` },
   { label: "Ask Veda", href: `${BASE_PATH}/#ask-veda` },
   { label: "FAQ", href: `${BASE_PATH}/#faq` },
   { label: "Join the Waitlist", href: `${BASE_PATH}/#waitlist` },

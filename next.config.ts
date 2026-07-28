@@ -31,6 +31,25 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || undefined;
 const nextConfig: NextConfig = {
   basePath,
   trailingSlash: true,
+
+  /* /guides was renamed to /reads on 29 July 2026.
+   *
+   * These redirects are not optional politeness — links to the old paths are
+   * already out in the world: the ectopic preview has been shared for review,
+   * the sitemap has been submitted, and Google has crawled the section. A 404
+   * on any of them loses the page and whatever ranking it had.
+   *
+   * `permanent: true` sends a 308, which tells Google to move the indexed URL
+   * to the new one rather than treating this as a temporary detour.
+   *
+   * The wildcard covers every depth in one rule: the hub, categories,
+   * articles, author profiles and the lab sandbox. */
+  async redirects() {
+    return [
+      { source: "/guides", destination: "/reads", permanent: true },
+      { source: "/guides/:path*", destination: "/reads/:path*", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

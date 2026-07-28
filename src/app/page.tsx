@@ -25,7 +25,7 @@ import Footer from "@/components/sections/Footer";
  *
  *   import Journal from "@/components/sections/Journal";    // the on-page "From the Journal" teaser
  *                                                          // → the content hub now lives on its own
- *                                                          //    SEO route at /guides (app/guides/**),
+ *                                                          //    SEO route at /reads (app/reads/**),
  *                                                          //    so it's intentionally NOT in the landing
  *                                                          //    scroll. The teaser file is preserved.
  *

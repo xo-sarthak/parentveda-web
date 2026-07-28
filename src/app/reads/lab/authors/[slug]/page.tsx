@@ -6,10 +6,10 @@ import Breadcrumbs from "@/components/guides/Breadcrumbs";
 import PostCard from "@/components/guides/PostCard";
 import AuthorAvatar from "@/components/guides/AuthorAvatar";
 import { getAuthorBySlug, resolveAuthor, type Author } from "@/lib/authors";
-import { GUIDES_BASE, getAllPosts } from "@/lib/guides";
+import { GUIDES_BASE, GUIDES_NAME, getAllPosts } from "@/lib/guides";
 
 /* ============================================================
-   /guides/lab/authors/[slug] — LAYOUT SANDBOX.
+   /reads/lab/authors/[slug] — LAYOUT SANDBOX.
 
    The profile page as the sandbox renders it, so the whole journey can be
    reviewed in one pass: lab article → byline → this page.
@@ -19,7 +19,7 @@ import { GUIDES_BASE, getAllPosts } from "@/lib/guides";
    duplicate so the live author page stays prerendered and untouched while
    these are still being decided.
 
-   Delete with the rest of /guides/lab.
+   Delete with the rest of /reads/lab.
    ============================================================ */
 
 export const revalidate = 60;
@@ -55,8 +55,8 @@ export default async function LabAuthorPage({
         <Breadcrumbs
           trail={[
             { name: "Home", href: "/" },
-            { name: "Guides", href: GUIDES_BASE },
-            { name: author.name, href: `/guides/lab/authors/${author.slug}` },
+            { name: GUIDES_NAME, href: GUIDES_BASE },
+            { name: author.name, href: `/reads/lab/authors/${author.slug}` },
           ]}
         />
 

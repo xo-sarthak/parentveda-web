@@ -20,8 +20,13 @@ import { supabase } from "@/lib/supabase";
 import type { IconKey } from "@/lib/content";
 import type { Tint } from "@/lib/ui";
 
-export const GUIDES_BASE = "/guides";
-export const GUIDES_NAME = "Guides";
+/* The route. Renamed from /guides on 29 July 2026; next.config.ts keeps a
+   permanent redirect from the old paths so links already shared still work. */
+export const GUIDES_BASE = "/reads";
+/* The reader-facing name for this section. The ROUTE stays /guides —
+   changing that would break every article URL, the sitemap, and any link
+   already shared. Label and path are allowed to differ. */
+export const GUIDES_NAME = "Reads";
 export const GUIDES_TAGLINE =
   "Calm, evidence-informed reads for pregnancy and early parenthood — articles, research & book summaries, recipes and clear answers.";
 
@@ -315,21 +320,21 @@ export const TRIMESTERS: Trimester[] = [
     key: "first",
     name: "First trimester",
     weeks: "Weeks 1–13",
-    blurb: "The tender early days — nausea, folic acid, and settling in gently.",
+    blurb: "The tender early days. Nausea, folic acid, and settling in gently.",
     tint: "brand",
   },
   {
     key: "second",
     name: "Second trimester",
     weeks: "Weeks 14–27",
-    blurb: "The golden middle — energy returns, and the first little kicks arrive.",
+    blurb: "The golden middle. Energy returns, and the first little kicks arrive.",
     tint: "coral",
   },
   {
     key: "third",
     name: "Third trimester",
     weeks: "Weeks 28–40",
-    blurb: "The home stretch — rest, warm food and getting ready to say hello.",
+    blurb: "The home stretch. Rest, warm food, and getting ready to say hello.",
     tint: "earth",
   },
 ];

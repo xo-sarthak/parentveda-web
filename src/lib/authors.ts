@@ -7,7 +7,7 @@
    stores `author` as a plain string on the post, so this file enriches
    that string into a full profile. Set a post's `author` in Directus to
    an author's `name` below and the byline, end-of-article card and
-   /guides/authors/<slug> page all light up automatically.
+   /reads/authors/<slug> page all light up automatically.
 
    An author string with no match here still renders exactly as before —
    plain text, no link. Nothing breaks for the posts bylined
@@ -20,7 +20,7 @@
    biggest E-E-A-T signal we can add to an article.
    ============================================================ */
 
-export const AUTHORS_BASE = "/guides/authors";
+export const AUTHORS_BASE = "/reads/authors";
 
 export type Qualification = {
   degree: string;

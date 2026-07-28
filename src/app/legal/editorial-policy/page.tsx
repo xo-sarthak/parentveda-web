@@ -84,7 +84,7 @@ export default function EditorialPolicyPage() {
 
       <S id="authors" title="Who writes and reviews">
         <P>
-          Guides carry a byline, and the name links to a profile listing that person&rsquo;s
+          Reads carry a byline, and the name links to a profile listing that person&rsquo;s
           qualifications, registration and areas of practice. That is deliberate: you should be able
           to check who is telling you something about your pregnancy, and decide for yourself what
           their word is worth.
@@ -144,7 +144,7 @@ export default function EditorialPolicyPage() {
           would rather be corrected than be wrong in front of someone who is frightened.
         </P>
         <P>
-          You can read what we have published so far in the <A href={GUIDES_BASE}>Guides</A>.
+          You can read what we have published so far in the <A href={GUIDES_BASE}>Reads</A>.
         </P>
       </S>
     </LegalPage>

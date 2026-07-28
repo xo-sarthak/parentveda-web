@@ -10,6 +10,7 @@ import JsonLd from "@/components/guides/JsonLd";
 import {
   CATEGORIES,
   GUIDES_BASE,
+  GUIDES_NAME,
   GUIDES_TAGLINE,
   categoryPath,
   getAllPosts,
@@ -24,13 +25,13 @@ import { TINT } from "@/lib/ui";
    getFeaturedPosts(6) as an even grid. The component file is untouched. */
 
 export const metadata: Metadata = {
-  title: "Pregnancy & Parenting Guides",
+  title: "Pregnancy & Parenting Reads",
   description: GUIDES_TAGLINE,
   alternates: { canonical: GUIDES_BASE },
   openGraph: {
     type: "website",
     url: `${SITE_URL}${GUIDES_BASE}`,
-    title: "Pregnancy & Parenting Guides · ParentVeda",
+    title: "Pregnancy & Parenting Reads · ParentVeda",
     description: GUIDES_TAGLINE,
   },
 };
@@ -55,7 +56,7 @@ export default async function GuidesHub() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${SITE_NAME} Guides`,
+    name: `${SITE_NAME} ${GUIDES_NAME}`,
     description: GUIDES_TAGLINE,
     url: `${SITE_URL}${GUIDES_BASE}`,
     isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
@@ -63,11 +64,11 @@ export default async function GuidesHub() {
 
   return (
     <Container className="py-10 sm:py-14">
-      <Breadcrumbs trail={[{ name: "Home", href: "/" }, { name: "Guides", href: GUIDES_BASE }]} />
+      <Breadcrumbs trail={[{ name: "Home", href: "/" }, { name: GUIDES_NAME, href: GUIDES_BASE }]} />
 
       <header className="mt-6 max-w-2xl">
         <p className="text-[0.72rem] font-bold uppercase tracking-[0.16em] text-brand-500">
-          ParentVeda Guides
+          ParentVeda Reads
         </p>
         <h1 className="mt-3 text-balance font-display text-[2.3rem] font-medium leading-[1.08] tracking-[-0.02em] text-ink-900 sm:text-[2.9rem]">
           Calm, trustworthy reading for{" "}
@@ -80,37 +81,13 @@ export default async function GuidesHub() {
 
       {/* The lead story */}
       {hero ? (
-        <section className="mt-10" aria-label="Featured guide">
+        <section className="mt-10" aria-label="Featured read">
           <FeaturedPost post={hero} />
         </section>
       ) : null}
 
-      {/* Stage-aware shelf — the axis only a pregnancy library has */}
-      <section className="mt-16" aria-labelledby="stage-heading">
-        <h2 id="stage-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
-          Reading for where you are
-        </h2>
-        <div className="mt-5">
-          <TrimesterShelf />
-        </div>
-      </section>
-
-      {/* Latest */}
-      {latest.length ? (
-        <section className="mt-16" aria-labelledby="latest-heading">
-          <h2 id="latest-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
-            Latest reads
-          </h2>
-          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {latest.map((p) => (
-              <PostCard key={`${p.category}/${p.slug}`} post={p} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
       {/* Compact category index */}
-      <section className="mt-16" aria-labelledby="categories-heading">
+      <section className="mt-14" aria-labelledby="categories-heading">
         <h2 id="categories-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
           Browse by category
         </h2>
@@ -145,6 +122,30 @@ export default async function GuidesHub() {
         <p className="mt-10 rounded-card bg-mist/60 px-5 py-8 text-center text-ink-500 ring-1 ring-brand-500/10">
           Gentle new pieces are on their way.
         </p>
+      ) : null}
+
+      {/* Stage-aware shelf — the axis only a pregnancy library has */}
+      <section className="mt-16" aria-labelledby="stage-heading">
+        <h2 id="stage-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
+          Reading for where you are
+        </h2>
+        <div className="mt-5">
+          <TrimesterShelf />
+        </div>
+      </section>
+
+      {/* Latest */}
+      {latest.length ? (
+        <section className="mt-16" aria-labelledby="latest-heading">
+          <h2 id="latest-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
+            Latest reads
+          </h2>
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {latest.map((p) => (
+              <PostCard key={`${p.category}/${p.slug}`} post={p} />
+            ))}
+          </div>
+        </section>
       ) : null}
 
       <JsonLd data={jsonLd} />
