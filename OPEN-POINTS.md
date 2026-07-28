@@ -3,7 +3,7 @@
 Everything outstanding on parentveda.in, in one place.
 
 **Kept current** — items get added as they come up and struck off when closed,
-rather than living in chat scrollback. Last updated 27 July 2026.
+rather than living in chat scrollback. Last updated 27 July 2026 (second pass).
 
 Related: [ADMIN-PANEL-REQUIREMENTS.md](./ADMIN-PANEL-REQUIREMENTS.md) — which
 content needs to become editable, and which deliberately should not.
@@ -57,6 +57,33 @@ Both are one-step once the listing exists.
 
 ---
 
+## 🆕 Raised today
+
+- [ ] **JSON-LD still says `author`, but the page says reviewer.** The byline and
+      closing card now read "Medically reviewed by", while the structured data
+      still claims Dr. Mahender Singh authored the piece. Google reads that, and
+      on YMYL health content the author/reviewer distinction is precisely what it
+      weighs. The content team's own SEO pack asks for `MedicalWebPage +
+      FAQPage + Person (author + reviewer)`. Needs a decision on **who the author
+      is** (in-house? ParentVeda as an Organization?) and a `reviewer` column on
+      `content_posts`, which does not exist yet.
+- [ ] **The emergency-signs recap was removed** with the "When to consult your
+      doctor" section. The information survives earlier in the piece under "Signs
+      that need immediate medical attention", but it was the last thing a reader
+      saw before the references. On a condition where delay is the danger, that
+      repetition may have been earning its place.
+- [ ] **The pull quote is unattributed.** Written to be a doctor's line; the
+      reviewing obstetrician-gynaecologist is still TBD, so attributing it now
+      would put words in the mouth of someone unassigned.
+- [ ] **`author_slug` exists on `content_posts` and is set**, and the site ignores
+      it — bylines match on the author's *name string* instead. Rename
+      "Dr. Mahender Singh" to "Dr Mahender Singh" and every byline silently falls
+      back to plain text. Also unused: `hero_image`, `hero_file`, `og_image_file`,
+      `verdict`. Ask the app terminal what they are for.
+- [ ] **Em-dash sweep** across the 10 other live articles (3–7 each). Editorial
+      work, not find-and-replace. Back the bodies up to a committed file first —
+      they are live and content has no git history.
+
 ## ❓ Decisions needed
 
 - [ ] **The preview article.** `article/ectopic-pregnancy-preview-x7k2` is tagged
@@ -67,10 +94,10 @@ Both are one-step once the listing exists.
 - [ ] **`/guides/lab`.** Unlinked, noindex layout sandbox. Decide what graduates
       to the real article route — the sticky rail, share row, FAQ accordion, lead
       visual — then delete the directory.
-- [ ] **The lead visual** on that article is a stand-in: the post has no
-      `og_image`, so it reuses the article's own implantation diagram and it
-      therefore appears twice on the page. Set `og_image` in Directus and it
-      takes over.
+- [ ] **A new cover image** for the ectopic article — one was asked for and not
+      yet supplied. When it lands it should go in `hero_image`, not `og_image`:
+      the share card and the on-page hero are different jobs and that column
+      exists for exactly this.
 - [ ] **Homepage in Source Serif.** The font switch reaches every marketing
       section, not just the guides. Those were designed around a sans and have
       not been reviewed since. Worth a look at `/`.
@@ -94,23 +121,21 @@ Both are one-step once the listing exists.
 
 ## ✍️ Content gaps
 
-- [ ] **Inline hyperlinking.** The pilot article has **zero** inline links. The
-      renderer already styles them properly — this is a content gap, not a code
-      one, and it is one of the clearest differences between our articles and
-      What to Expect's.
-- [ ] **References / citations.** The third item of the original SEO list, never
-      built. What to Expect uses superscript markers that jump to a numbered
-      source list; worth doing the same rather than the single `source` line we
-      have now.
+- [ ] **Superscript citation markers.** The ectopic article now has a References
+      section, but nothing in the prose points into it. What to Expect uses
+      numbered markers that jump to the source. Worth doing once a second
+      article needs it.
+- [ ] **Inline links on the other 10 articles.** The ectopic piece has 18; the
+      rest still have none.
 - [ ] **Homepage teasers duplicate real articles.** `ARTICLES`, `RECIPES` and
       `FEATURED_JOURNAL` in `src/lib/content.ts` are hardcoded cards describing
       articles that already exist in Supabase. Two sources of truth, guaranteed
       to drift. Fix by reading from `getFeaturedPosts()`, not by adding a CMS
       collection. See ADMIN-PANEL-REQUIREMENTS.md §4.
-- [ ] **Author profiles → Directus**, and drop the pilot override:
-      `PILOT_AUTHOR_BY_POST` in `src/lib/authors.ts` pins Dr. Mahender Singh to
-      the preview post because that post's Directus `author` field still says
-      "Team ParentVeda". Set the field, delete the override.
+- [ ] **Author profiles → Directus.** Still a hardcoded array in
+      `src/lib/authors.ts`; adding a second doctor means editing TypeScript and
+      deploying. See ADMIN-PANEL-REQUIREMENTS.md §2. *(The pilot override is
+      gone — that half is done.)*
 
 ---
 
@@ -139,3 +164,15 @@ Both are one-step once the listing exists.
   it, matching `SITE_URL`. Every canonical previously pointed at a redirect.
 - ~~**Waitlist forms stored nothing**~~ — wired to Supabase via a server action;
   verified end to end.
+- ~~**Author profiles pilot override**~~ — the post's Directus `author` field is
+  set, so `PILOT_AUTHOR_BY_POST` is gone and bylines resolve by name.
+- ~~**Inline hyperlinking**~~ — 18 links in the ectopic article, was zero.
+- ~~**References**~~ — a proper `## References` section with nine sources.
+- ~~**The stand-in hero image**~~ — replaced with a real photograph, so the
+  anatomy diagram no longer does double duty.
+- ~~**Article column geometry**~~ — matched to the iMumz reference (1216 / 346
+  rail / 80 gutter / 790px of text); the 68ch cap had been leaving ~170px of
+  dead space inside the column.
+- ~~**The sticky rail never actually stuck**~~ — it is a grid item, grid items
+  stretch to fill their row, so `sticky` had no range to travel. `self-start`
+  fixed it.
