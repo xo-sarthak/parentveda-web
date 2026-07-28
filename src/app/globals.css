@@ -63,7 +63,13 @@
      where something is meant to echo the mark. */
   --color-logo-pink: #f75175;
   --color-logo-pink-tint: #fef3f5; /* the same hue at ~7% over white */
-  --color-logo-pink-deep: #a63450; /* 5.99:1 on the tint — passes AA */
+  /* Still unmistakably pink, only a shade deeper than the mark. An earlier
+     attempt darkened the pink until it hit 4.5:1 and the result read as maroon
+     — darkening a pink walks it straight into red-brown, so the contrast number
+     was met and the colour was lost. This keeps the hue and earns its contrast
+     from SIZE instead: the heading is set at 1.2rem bold, which counts as large
+     text, where the bar is 3:1. This is 3.61:1. */
+  --color-logo-pink-deep: #e84068;
 
   /* — Utility brand colors — */
   --color-wa: #25d366; /* WhatsApp green — ONLY for the WhatsApp CTA */
@@ -427,7 +433,7 @@ h1, h2, h3, h4, h5, h6 {
      of brand purple (rail, headings, links, the Insight), so the one box meant
      to stand apart echoes the other half of the logo exactly. */
   background: var(--color-logo-pink-tint);
-  font-size: 1.05rem;
+  font-size: 1.2rem; /* >=18.66px bold: large text, so 3:1 is the bar */
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
