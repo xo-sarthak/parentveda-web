@@ -62,7 +62,7 @@
      places, whereas this is the logo's literal colour and should only be used
      where something is meant to echo the mark. */
   --color-logo-pink: #f75175;
-  --color-logo-pink-tint: #fdf2f7; /* the same family at ~7% over white */
+  --color-logo-pink-tint: #fdeff7; /* the same family at ~7% over white */
   /* Rose, not red. Two earlier attempts got this wrong in different ways:
      darkening the mark's pink produced maroon, and keeping its hue (347deg) at
      high saturation produced something that read as a warning — a saturated
@@ -73,9 +73,12 @@
      darkened without turning brown — which is exactly what went wrong the
      first time at 347deg. Deeper and pinker at once.
 
-     5.17:1 on the tint, so it now passes at ANY text size; the 1.2rem heading
-     no longer depends on the large-text exemption to be readable. */
-  --color-logo-pink-deep: #c31d6d; /* hsl(331, 74%, 44%) */
+     Saturation is turned all the way up and the hue sits at 326deg, which is
+     the pinkest this can be while still being legible on the tint. 4.03:1,
+     which clears the 3:1 bar for the 1.2rem bold heading. Any pinker means
+     lifting the lightness, and that costs contrast faster than it gains
+     colour. */
+  --color-logo-pink-deep: #e60082; /* hsl(326, 100%, 45%) */
 
   /* — Utility brand colors — */
   --color-wa: #25d366; /* WhatsApp green — ONLY for the WhatsApp CTA */
@@ -455,7 +458,7 @@ h1, h2, h3, h4, h5, h6 {
 .md-body .takeaways-list li { color: var(--color-ink-800); }
 /* The dots sit in the same hue family as the heading rather than the mark's
    own 347deg pink, which read noticeably redder beside it. */
-.md-body .takeaways-list > li > .md-marker { background: #e8558f; }
+.md-body .takeaways-list > li > .md-marker { background: #f75bb4; }
 
 /* ---- FAQ accordion --------------------------------------------------------
    Smooth open/close with no JavaScript. `interpolate-size` makes `auto` an
