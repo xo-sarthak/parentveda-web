@@ -62,14 +62,18 @@
      places, whereas this is the logo's literal colour and should only be used
      where something is meant to echo the mark. */
   --color-logo-pink: #f75175;
-  --color-logo-pink-tint: #fef3f5; /* the same hue at ~7% over white */
-  /* Still unmistakably pink, only a shade deeper than the mark. An earlier
-     attempt darkened the pink until it hit 4.5:1 and the result read as maroon
-     — darkening a pink walks it straight into red-brown, so the contrast number
-     was met and the colour was lost. This keeps the hue and earns its contrast
-     from SIZE instead: the heading is set at 1.2rem bold, which counts as large
-     text, where the bar is 3:1. This is 3.61:1. */
-  --color-logo-pink-deep: #e84068;
+  --color-logo-pink-tint: #fdf2f7; /* the same family at ~7% over white */
+  /* Rose, not red. Two earlier attempts got this wrong in different ways:
+     darkening the mark's pink produced maroon, and keeping its hue (347deg) at
+     high saturation produced something that read as a warning — a saturated
+     red-leaning hue is quite literally how alert colours are built.
+
+     This pulls the hue AWAY from red toward magenta (347 -> 338) and drops the
+     saturation (79% -> 68%), which is what makes it read as pink rather than
+     as an alarm. Contrast is earned from SIZE, not darkness: the heading is
+     1.2rem bold, which counts as large text, where the bar is 3:1. This is
+     3.89:1. */
+  --color-logo-pink-deep: #da3e77; /* hsl(338, 68%, 55%) */
 
   /* — Utility brand colors — */
   --color-wa: #25d366; /* WhatsApp green — ONLY for the WhatsApp CTA */
