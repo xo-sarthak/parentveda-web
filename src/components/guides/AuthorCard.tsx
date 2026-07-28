@@ -18,8 +18,13 @@ export default function AuthorCard({
   author,
   variant = "gradient",
   profileHref,
+  role = "About the author",
 }: {
   author: Author;
+  /** The person's relationship to THIS article, not a property of the person.
+      A doctor who medically reviews a piece did not write it, and saying they
+      did overstates their involvement — on health content that matters. */
+  role?: string;
   /** Overrides the profile link — see ArticleByline. */
   profileHref?: string;
   /**
@@ -44,7 +49,7 @@ export default function AuthorCard({
         id="about-the-author"
         className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400"
       >
-        About the author
+        {role}
       </h2>
 
       <div

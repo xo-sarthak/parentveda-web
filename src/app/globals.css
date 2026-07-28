@@ -55,6 +55,16 @@
   --color-ink-800: #403c44;
   --color-ink-900: #2f2c30;
 
+  /* — The mark's own pink —
+     Sampled straight out of public/parentveda-mark.png, where #f75175 is by
+     far the dominant pink pixel. Deliberately NOT folded into the coral scale:
+     coral-500 (#ff5a79) is the warmer UI accent and is used in a hundred
+     places, whereas this is the logo's literal colour and should only be used
+     where something is meant to echo the mark. */
+  --color-logo-pink: #f75175;
+  --color-logo-pink-tint: #fef3f5; /* the same hue at ~7% over white */
+  --color-logo-pink-deep: #a63450; /* 5.99:1 on the tint — passes AA */
+
   /* — Utility brand colors — */
   --color-wa: #25d366; /* WhatsApp green — ONLY for the WhatsApp CTA */
   --color-wa-dark: #1eb955;
@@ -413,25 +423,25 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1.4rem 1.6rem 0.9rem;
   border-top: 0;
   border-radius: var(--radius-card) var(--radius-card) 0 0;
-  /* Coral, not purple. The page already carries a lot of brand purple (rail,
-     headings, links, the Insight), so the one box that is meant to stand apart
-     borrows the logo's other colour instead of adding to the pile. */
-  background: var(--color-coral-50);
+  /* The mark's own pink, not the coral scale. The page already carries a lot
+     of brand purple (rail, headings, links, the Insight), so the one box meant
+     to stand apart echoes the other half of the logo exactly. */
+  background: var(--color-logo-pink-tint);
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-family: var(--font-heading);
-  color: var(--color-coral-700);
+  color: var(--color-logo-pink-deep);
 }
 .md-body .takeaways-list {
   margin: 0;
   padding: 0 1.6rem 1.5rem;
   border-radius: 0 0 var(--radius-card) var(--radius-card);
-  background: var(--color-coral-50);
+  background: var(--color-logo-pink-tint);
 }
 .md-body .takeaways-list li { color: var(--color-ink-800); }
-.md-body .takeaways-list > li > .md-marker { background: var(--color-coral-500); }
+.md-body .takeaways-list > li > .md-marker { background: var(--color-logo-pink); }
 
 /* ---- FAQ accordion --------------------------------------------------------
    Smooth open/close with no JavaScript. `interpolate-size` makes `auto` an

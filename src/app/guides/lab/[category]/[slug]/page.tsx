@@ -260,6 +260,7 @@ export default async function LabPostPage({
           <ArticleByline
             author={author}
             authorName={post.author}
+            role="Medically reviewed by"
             date={post.date || undefined}
             dateLabel={post.date ? formatDate(post.date) : undefined}
             readingTime={post.readingTime || undefined}
@@ -336,7 +337,12 @@ export default async function LabPostPage({
               </div>
             ) : null}
 
-            {author ? <AuthorCard author={author} variant="solid" profileHref={labProfile(author.slug)} /> : null}
+            {author ? <AuthorCard
+                author={author}
+                variant="solid"
+                role="Medically reviewed by"
+                profileHref={labProfile(author.slug)}
+              /> : null}
 
             {/* Soft CTA — flat surface, no gradient wash. */}
             <div className="mt-12 flex flex-col items-start gap-3 rounded-card bg-mist/70 p-7 shadow-card ring-1 ring-brand-500/10 sm:flex-row sm:items-center sm:justify-between">

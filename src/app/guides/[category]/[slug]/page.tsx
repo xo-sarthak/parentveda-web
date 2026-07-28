@@ -286,6 +286,7 @@ export default async function PostPage({
             <ArticleByline
               author={author}
               authorName={post.author}
+              role="Medically reviewed by"
               date={post.date || undefined}
               dateLabel={post.date ? formatDate(post.date) : undefined}
               readingTime={post.readingTime || undefined}
@@ -364,7 +365,7 @@ export default async function PostPage({
 
         {/* About the author — the second gateway to the profile page. Only
             renders for posts whose byline resolves to a real Author. */}
-        {author ? <AuthorCard author={author} /> : null}
+        {author ? <AuthorCard author={author} role="Medically reviewed by" /> : null}
 
         {/* Soft CTA */}
         <div className="mt-12 flex flex-col items-start gap-3 rounded-card bg-gradient-to-br from-mist via-white to-coral-50 p-7 shadow-card ring-1 ring-brand-500/10 sm:flex-row sm:items-center sm:justify-between">
