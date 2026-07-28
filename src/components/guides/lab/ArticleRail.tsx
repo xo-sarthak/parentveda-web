@@ -92,11 +92,14 @@ export default function ArticleRail({
        static block and scrolls away, which looks like sticky "not working".
        Sized to its contents, it pins under the header for the whole read. */
     <aside className="lg:sticky lg:top-24 lg:self-start">
+      {/* Solid brand header bar rather than a quiet label, so the contents
+          read as a component of the page instead of a stray list, and match
+          the FAQ accordion's header at the other end of the article. */}
       <details
         open
-        className="group rounded-card bg-surface p-5 ring-1 ring-brand-500/10 [&_summary::-webkit-details-marker]:hidden"
+        className="group overflow-hidden rounded-card bg-surface ring-1 ring-brand-500/10 [&_summary::-webkit-details-marker]:hidden"
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-heading text-[0.72rem] font-bold uppercase tracking-[0.14em] text-brand-700 lg:cursor-default">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-brand-600 px-5 py-4 font-heading text-[0.74rem] font-extrabold uppercase tracking-[0.16em] text-white lg:cursor-default">
           In this article
           <svg
             className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180 lg:hidden"
@@ -115,7 +118,7 @@ export default function ArticleRail({
         <nav aria-label="Table of contents">
           <ol
             ref={listRef}
-            className="mt-4 max-h-[min(60vh,26rem)] overflow-y-auto border-l border-brand-100 pr-1"
+            className="my-4 ml-5 max-h-[min(60vh,26rem)] overflow-y-auto border-l border-brand-100 pr-4"
           >
             {items.map((it) => {
               const active = it.id === activeId;
