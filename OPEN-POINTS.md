@@ -176,3 +176,36 @@ Both are one-step once the listing exists.
 - ~~**The sticky rail never actually stuck**~~ — it is a grid item, grid items
   stretch to fill their row, so `sticky` had no range to travel. `self-start`
   fixed it.
+
+---
+
+## Sponsor portal (`/portal`) — added 29 July 2026
+
+Built from the app repo (`C:\Projects\parentveda`), which owns the migrations
+behind it. HR at a customer signs in with **the same ParentVeda account they use
+in the app**; the `sponsor_admin` capability (migration 0060) is what reveals
+this section. No separate users table, no second password.
+
+Three routes, all `force-dynamic`, all `noindex`: `/portal/login`, `/portal`
+(take-up + consultations), `/portal/people` (the follow-up list). Session
+refresh lives in `src/middleware.ts`, **matched to `/portal` only** so the rest
+of the site stays static/ISR.
+
+### ⚠️ Never import `@/lib/supabase` in the portal
+
+It injects `cache: "force-cache"` with a shared tag into every fetch. Correct
+for guides — identical for every visitor. Catastrophic here: every portal
+request is `POST /rpc/sponsor_dashboard` with an empty body, byte-identical
+between customers, and Next's data cache keys on URL + body, **not headers**.
+One company's dashboard would be served to another, with the database having
+done nothing wrong. Use `@/lib/supabase-portal` (`cache: "no-store"`).
+
+- [ ] **A forwardable report.** HR sends numbers to their leadership far more
+  often than they browse. A consistent branded PDF/print view is worth more
+  commercially than more metrics — see `docs/STILL-OPEN.md` §11.2 in the app repo.
+- [ ] **Trend over time.** The page shows current state only. `activated_at` and
+  `booking_bookings.created_at` already exist, so a monthly rollup needs no new
+  tables — "35%, up from 22% last quarter" is the renewal argument.
+- [ ] **Password reset.** There is no `/portal/forgot`. Supabase can send the
+  email, but the project has no transactional email provider wired yet
+  (`STILL-OPEN` §11.6) — same blocker as employee activation.

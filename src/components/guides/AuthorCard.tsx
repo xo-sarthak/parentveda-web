@@ -29,8 +29,8 @@ export default function AuthorCard({
   profileHref?: string;
   /**
    * "solid" drops the three-stop wash and the gradient accent rail for a flat
-   * surface and one brand purple. Used by the /reads/lab layout, where the
-   * house rule is a single consistent purple rather than gradients.
+   * surface and one brand purple. The article route uses the default; "solid"
+   * is kept because the flat treatment reads better on a white page.
    */
   variant?: "gradient" | "solid";
 }) {

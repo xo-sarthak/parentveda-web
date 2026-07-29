@@ -1,0 +1,33 @@
+/* ============================================================
+   Sponsor portal — shared types and formatting.
+
+   Lives apart from app/actions/portal-auth.ts because every export in a
+   "use server" module becomes a callable server endpoint; a type or a constant
+   in there is a runtime error at module evaluation. Same reason lib/signup.ts
+   exists next to actions/subscribe.ts.
+   ============================================================ */
+
+export type PortalAuthState = { error?: string };
+
+export const PORTAL_AUTH_INITIAL: PortalAuthState = {};
+
+/** "12 Jul 2026", or an em dash. Matches how dates read in the app. */
+export function shortDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+/** What a roster row's status should read as, in HR's words rather than the
+    database's. `not_activated` is the one that matters — it is the follow-up
+    list, and "not yet" is an invitation where "inactive" is a verdict. */
+export const PERSON_STATUS: Record<string, { label: string; tone: string }> = {
+  active: { label: "Using it", tone: "text-brand-600 bg-brand-50" },
+  not_activated: { label: "Not yet", tone: "text-ink-500 bg-ink-50" },
+  removed: { label: "Removed", tone: "text-ink-400 bg-ink-50" },
+};

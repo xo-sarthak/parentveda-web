@@ -10,6 +10,11 @@ import ReadingProgress from "@/components/guides/ReadingProgress";
 import JsonLd from "@/components/guides/JsonLd";
 import ArticleByline from "@/components/guides/ArticleByline";
 import AuthorCard from "@/components/guides/AuthorCard";
+import { tocItems } from "@/components/guides/Toc";
+import ArticleRail from "@/components/guides/ArticleRail";
+import ArticleHero from "@/components/guides/ArticleHero";
+import FaqAccordion, { type Faq } from "@/components/guides/FaqAccordion";
+import { headingSlug } from "@/lib/headings";
 import { authorPath, resolveAuthor, type Author } from "@/lib/authors";
 import {
   GUIDES_BASE,
@@ -80,6 +85,97 @@ export async function generateMetadata({
     },
   };
 }
+
+/**
+ * Lift the FAQ section out of the Markdown so it can render as an accordion.
+ *
+ * Returns the body with that section removed, plus its heading, the
+ * question/answer pairs with their answers left as raw Markdown (so links,
+ * lists and emphasis inside an answer still render), and any `trailing`
+ * content that followed the last question.
+ *
+ * That last part matters: in this article the medical disclaimer is a
+ * `> Note:` callout sitting after the final question with no heading between
+ * them. Treated naively it becomes part of the last answer — which would bury
+ * a medical disclaimer inside a collapsed panel. Callouts are article
+ * furniture, never answer content, so one starting after a question ends the
+ * FAQ and everything from there is returned to be rendered in the open.
+ */
+function splitFaqSection(md: string): {
+  body: string;
+  title: string | null;
+  faqs: Faq[];
+  trailing: string;
+} {
+  const lines = md.split("\n");
+  const isFaqHeading = (line: string) => {
+    const m = /^##\s+(.+?)\s*$/.exec(line);
+    if (!m) return false;
+    return /common questions|frequently asked|faqs?$/i.test(m[1].replace(/[*_`]/g, "").trim());
+  };
+
+  const start = lines.findIndex(isFaqHeading);
+  if (start === -1) return { body: md, title: null, faqs: [], trailing: "" };
+
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+
+  const title = lines[start].replace(/^##\s+/, "").replace(/[*_`]/g, "").trim();
+  const faqs: Faq[] = [];
+  let q: string | null = null;
+  let a: string[] = [];
+  const flush = () => {
+    const answer = a.join("\n").trim();
+    if (q && answer) faqs.push({ q, a: answer });
+    q = null;
+    a = [];
+  };
+
+  const trailing: string[] = [];
+  let inTrailing = false;
+
+  for (const line of lines.slice(start + 1, end)) {
+    if (inTrailing) {
+      trailing.push(line);
+      continue;
+    }
+
+    // A callout opening after a question closes the FAQ — see the note above.
+    if (q && /^>\s*(note|important|insight):/i.test(line.trim())) {
+      flush();
+      inTrailing = true;
+      trailing.push(line);
+      continue;
+    }
+
+    const m = /^###\s+(.+?)\s*$/.exec(line);
+    if (m) {
+      flush();
+      q = m[1].replace(/[*_`]/g, "").trim();
+      continue;
+    }
+    if (q) a.push(line);
+  }
+  flush();
+
+  return {
+    body: [...lines.slice(0, start), ...lines.slice(end)].join("\n"),
+    title,
+    faqs,
+    trailing: trailing.join("\n").trim(),
+  };
+}
+
+/* A stand-in lead visual, only because this post has no og_image set in
+   Directus. It reuses the article's own implantation diagram purely so the
+   hero layout can be judged — note it therefore appears twice on this page.
+   In production this slot takes post.ogImage; set og_image on the post and
+   delete this. */
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function formatDate(iso: string): string {
@@ -257,10 +353,18 @@ export default async function PostPage({
   const faqs = post.category === "parenting-faq" ? [] : extractFaqs(post.body);
   const jsonLd = faqs.length >= 2 ? [baseJsonLd, buildFaqSchema(faqs)] : baseJsonLd;
 
+  /* Drop the [TOC] marker: the sticky rail replaces the inline contents list,
+     and removing it makes tocItems() return every H2 rather than only those
+     below the marker, which is what a persistent rail wants. */
+  const full = post.body.replace(/^\[toc\]\s*$/gim, "");
+  const items = tocItems(full);
+  const { body, title: faqTitle, faqs: faqItems, trailing: afterFaq } = splitFaqSection(full);
+  const shareUrl = `${SITE_URL}${canonical}`;
+
   return (
     <Container className="py-10 sm:py-14">
       <ReadingProgress />
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-[1216px]">
         <Breadcrumbs
           trail={[
             { name: "Home", href: "/" },
@@ -270,131 +374,167 @@ export default async function PostPage({
           ]}
         />
 
-        <article className="mt-6">
-          <header>
-            <Link
-              href={categoryPath(category.slug)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-mist px-3 py-1.5 text-[0.72rem] font-bold uppercase tracking-[0.12em] text-brand-700 ring-1 ring-brand-500/10"
-            >
-              <Icon name={category.icon} className="h-3.5 w-3.5" />
-              {category.singular}
-            </Link>
+        <header className="mt-6 max-w-3xl">
+          <Link
+            href={categoryPath(category.slug)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-mist px-3 py-1.5 text-[0.72rem] font-bold uppercase tracking-[0.12em] text-brand-700 ring-1 ring-brand-500/10"
+          >
+            <Icon name={category.icon} className="h-3.5 w-3.5" />
+            {category.singular}
+          </Link>
 
-            <h1 className="mt-5 text-balance font-display text-[2.1rem] font-medium leading-[1.1] tracking-[-0.02em] text-ink-900 sm:text-[2.7rem]">
-              {post.title}
-            </h1>
+          <h1 className="mt-5 text-balance font-display text-[2.3rem] font-semibold leading-[1.08] tracking-[-0.03em] text-ink-900 sm:text-[3rem]">
+            {post.title}
+          </h1>
 
-            <ArticleByline
-              author={author}
-              authorName={post.author}
-              role="Medically reviewed by"
-              date={post.date || undefined}
-              dateLabel={post.date ? formatDate(post.date) : undefined}
-              readingTime={post.readingTime || undefined}
-            />
-          </header>
-
-          {/* Book / research citation */}
-          {post.bookMeta ? (
-            <div className="mt-6 flex items-center gap-3 rounded-2xl bg-mist/60 px-5 py-4 ring-1 ring-brand-500/10">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-brand-500 shadow-soft">
-                <Icon name="book" className="h-5 w-5" />
-              </span>
-              <p className="text-sm text-ink-600">
-                Summary of <span className="font-semibold text-ink-900">{post.bookMeta.title}</span> by{" "}
-                {post.bookMeta.author}.
-              </p>
-            </div>
-          ) : null}
-
-          {/* Recipe meta + ingredients + steps */}
-          {post.recipe ? (
-            <div className="mt-8 overflow-hidden rounded-card bg-surface shadow-card ring-1 ring-brand-500/[0.06]">
-              <div className="flex flex-wrap gap-x-8 gap-y-3 border-b border-brand-500/10 bg-mist/40 px-6 py-4 text-sm">
-                {post.recipe.totalTime ? <Meta label="Total" value={post.recipe.totalTime} /> : null}
-                {post.recipe.prepTime ? <Meta label="Prep" value={post.recipe.prepTime} /> : null}
-                {post.recipe.cookTime ? <Meta label="Cook" value={post.recipe.cookTime} /> : null}
-                {post.recipe.servings ? <Meta label="Serves" value={post.recipe.servings} /> : null}
-              </div>
-              <div className="grid gap-8 p-6 sm:grid-cols-[0.9fr_1.1fr]">
-                <div>
-                  <h2 className="font-heading text-base font-bold tracking-tight text-ink-900">Ingredients</h2>
-                  <ul className="mt-3 flex flex-col gap-2">
-                    {post.recipe.ingredients.map((ing) => (
-                      <li key={ing} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-700">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-coral-400" aria-hidden />
-                        {ing}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h2 className="font-heading text-base font-bold tracking-tight text-ink-900">Method</h2>
-                  <ol className="mt-3 flex flex-col gap-3">
-                    {post.recipe.steps.map((s, i) => (
-                      <li key={i} className="flex gap-3 text-[0.95rem] leading-relaxed text-ink-700">
-                        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-600">
-                          {i + 1}
-                        </span>
-                        {s}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {/* Body — Markdown from Directus */}
-          <div className="mt-8">
-            <PostBody body={post.body} />
-          </div>
-
-          {post.source ? (
-            <p className="mt-8 border-t border-brand-500/10 pt-5 text-xs leading-relaxed text-ink-400">
-              <span className="font-semibold text-ink-500">Source: </span>
-              {post.source.href ? (
-                <a href={post.source.href} className="text-brand-600 underline-offset-4 hover:underline" target="_blank" rel="noopener noreferrer">
-                  {post.source.label}
-                </a>
-              ) : (
-                post.source.label
-              )}
+          {post.description ? (
+            <p className="mt-4 text-pretty text-[1.15rem] leading-relaxed text-ink-500 sm:text-[1.22rem]">
+              {post.description}
             </p>
           ) : null}
-        </article>
 
-        {/* About the author — the second gateway to the profile page. Only
-            renders for posts whose byline resolves to a real Author. */}
-        {author ? <AuthorCard author={author} role="Medically reviewed by" /> : null}
+          <ArticleByline
+            author={author}
+            authorName={post.author}
+            role="Medically reviewed by"
+            date={post.date || undefined}
+            dateLabel={post.date ? formatDate(post.date) : undefined}
+            readingTime={post.readingTime || undefined}
+          />
+        </header>
 
-        {/* Soft CTA */}
-        <div className="mt-12 flex flex-col items-start gap-3 rounded-card bg-gradient-to-br from-mist via-white to-coral-50 p-7 shadow-card ring-1 ring-brand-500/10 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-heading text-lg font-bold text-ink-900">Want this gentle guidance in your pocket?</p>
-            <p className="mt-1 text-sm text-ink-600">ParentVeda is launching soon. Join the waitlist to be first.</p>
-          </div>
-          <Link
-            href="/#waitlist"
-            className="inline-flex h-12 shrink-0 items-center justify-center rounded-btn bg-brand-500 px-6 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-600"
-          >
-            Join the Waitlist
-          </Link>
+        <div className="max-w-3xl">
+          <ArticleHero src={post.ogImage} alt={post.ogImageAlt} />
         </div>
 
-        {/* Related — cross-category, ranked by shared tags */}
-        {related.length ? (
-          <section className="mt-14" aria-labelledby="related-heading">
-            <h2 id="related-heading" className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400">
-              Related reads
-            </h2>
-            <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((p) => (
-                <PostCard key={p.slug} post={p} />
-              ))}
+        <div className="mt-12 grid gap-10 lg:grid-cols-[346px_minmax(0,1fr)] lg:gap-20">
+          <ArticleRail items={items} shareUrl={shareUrl} shareTitle={post.title} />
+
+          <div className="min-w-0">
+            <article>
+              {post.bookMeta ? (
+                <div className="mb-8 flex items-center gap-3 rounded-2xl bg-mist/60 px-5 py-4 ring-1 ring-brand-500/10">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-brand-500 shadow-soft">
+                    <Icon name="book" className="h-5 w-5" />
+                  </span>
+                  <p className="text-sm text-ink-600">
+                    Summary of{" "}
+                    <span className="font-semibold text-ink-900">{post.bookMeta.title}</span> by{" "}
+                    {post.bookMeta.author}.
+                  </p>
+                </div>
+              ) : null}
+
+              {post.recipe ? (
+                <div className="mb-8 overflow-hidden rounded-card bg-surface shadow-card ring-1 ring-brand-500/[0.06]">
+                  <div className="flex flex-wrap gap-x-8 gap-y-3 border-b border-brand-500/10 bg-mist/40 px-6 py-4 text-sm">
+                    {post.recipe.totalTime ? <Meta label="Total" value={post.recipe.totalTime} /> : null}
+                    {post.recipe.prepTime ? <Meta label="Prep" value={post.recipe.prepTime} /> : null}
+                    {post.recipe.cookTime ? <Meta label="Cook" value={post.recipe.cookTime} /> : null}
+                    {post.recipe.servings ? <Meta label="Serves" value={post.recipe.servings} /> : null}
+                  </div>
+                  <div className="grid gap-8 p-6 sm:grid-cols-[0.9fr_1.1fr]">
+                    <div>
+                      <h2 className="font-heading text-base font-bold tracking-tight text-ink-900">
+                        Ingredients
+                      </h2>
+                      <ul className="mt-3 flex flex-col gap-2">
+                        {post.recipe.ingredients.map((ing) => (
+                          <li key={ing} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-700">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-coral-400" aria-hidden />
+                            {ing}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h2 className="font-heading text-base font-bold tracking-tight text-ink-900">
+                        Method
+                      </h2>
+                      <ol className="mt-3 flex flex-col gap-3">
+                        {post.recipe.steps.map((st, i) => (
+                          <li key={i} className="flex gap-3 text-[0.95rem] leading-relaxed text-ink-700">
+                            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-600">
+                              {i + 1}
+                            </span>
+                            {st}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <PostBody body={body} callouts="aside" />
+
+              {post.source ? (
+                <p className="mt-8 border-t border-brand-500/10 pt-5 text-xs leading-relaxed text-ink-400">
+                  <span className="font-semibold text-ink-500">Source: </span>
+                  {post.source.href ? (
+                    <a
+                      href={post.source.href}
+                      className="text-brand-600 underline-offset-4 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {post.source.label}
+                    </a>
+                  ) : (
+                    post.source.label
+                  )}
+                </p>
+              ) : null}
+            </article>
+
+            {faqTitle && faqItems.length ? (
+              <FaqAccordion title={faqTitle} faqs={faqItems} id={headingSlug(faqTitle)} />
+            ) : null}
+
+            {/* Whatever followed the last question — the medical disclaimer.
+                Rendered in the open, never inside a collapsed panel. */}
+            {afterFaq ? (
+              <div className="mt-8">
+                <PostBody body={afterFaq} callouts="aside" />
+              </div>
+            ) : null}
+
+            {author ? <AuthorCard author={author} role="Medically reviewed by" /> : null}
+
+            <div className="mt-12 flex flex-col items-start gap-3 rounded-card bg-mist/70 p-7 shadow-card ring-1 ring-brand-500/10 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-heading text-lg font-bold text-ink-900">
+                  Want this gentle guidance in your pocket?
+                </p>
+                <p className="mt-1 text-sm text-ink-600">
+                  ParentVeda is launching soon. Join the waitlist to be first.
+                </p>
+              </div>
+              <Link
+                href="/#waitlist"
+                className="inline-flex h-12 shrink-0 items-center justify-center rounded-btn bg-brand-500 px-6 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-600"
+              >
+                Join the Waitlist
+              </Link>
             </div>
-          </section>
-        ) : null}
+
+            {related.length ? (
+              <section className="mt-14" aria-labelledby="related-heading">
+                <h2
+                  id="related-heading"
+                  className="font-heading text-sm font-bold uppercase tracking-[0.12em] text-ink-400"
+                >
+                  Related reads
+                </h2>
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  {related.map((p) => (
+                    <PostCard key={p.slug} post={p} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <JsonLd data={jsonLd} />
