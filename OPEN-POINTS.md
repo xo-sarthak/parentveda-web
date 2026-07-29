@@ -3,7 +3,7 @@
 Everything outstanding on parentveda.in, in one place.
 
 **Kept current** — items get added as they come up and struck off when closed,
-rather than living in chat scrollback. Last updated 27 July 2026 (second pass).
+rather than living in chat scrollback. Last updated 29 July 2026.
 
 Related: [ADMIN-PANEL-REQUIREMENTS.md](./ADMIN-PANEL-REQUIREMENTS.md) — which
 content needs to become editable, and which deliberately should not.
@@ -84,16 +84,22 @@ Both are one-step once the listing exists.
       work, not find-and-replace. Back the bodies up to a committed file first —
       they are live and content has no git history.
 
+## 🆕 Raised 29 July
+
+- [ ] **Images live in the repo, not in storage.** `public/media/*` is served off
+      the filesystem and shipped by `git push`, so adding an article image needs
+      a developer and a deploy, and cannot be done from Directus. Fine for a
+      handful; a bottleneck the moment publishing is weekly. The unused
+      `hero_file` / `og_image_file` columns look like Directus file references —
+      ask the app terminal whether those are the intended route.
+- [ ] **Resubmit the sitemap in Search Console.** The whole section moved from
+      `/guides` to `/reads`. The 308s mean nothing is lost, but Search Console
+      holds the old URL list until it recrawls.
+- [ ] **8 of 11 posts have no `og_image`**, so their cards fall back to the
+      decorative pattern. Cards now use the real image whenever one is set.
+
 ## ❓ Decisions needed
 
-- [ ] **The preview article.** `article/ectopic-pregnancy-preview-x7k2` is tagged
-      `unlisted` — reachable at its URL, hidden from every listing and the
-      sitemap, noindex. Publish it properly, keep it as a review link, or delete
-      it? *(Note: unlisted is not private. Anyone with the link can read and
-      forward it.)*
-- [ ] **`/guides/lab`.** Unlinked, noindex layout sandbox. Decide what graduates
-      to the real article route — the sticky rail, share row, FAQ accordion, lead
-      visual — then delete the directory.
 - [ ] **A new cover image** for the ectopic article — one was asked for and not
       yet supplied. When it lands it should go in `hero_image`, not `og_image`:
       the share card and the on-page hero are different jobs and that column
@@ -176,6 +182,18 @@ Both are one-step once the listing exists.
 - ~~**The sticky rail never actually stuck**~~ — it is a grid item, grid items
   stretch to fill their row, so `sticky` had no range to travel. `self-start`
   fixed it.
+- ~~**The ectopic article is published**~~ — v6 sits on the canonical
+  `ectopic-pregnancy` slug; the `-preview-x7k2` row is retired to draft rather
+  than deleted, so there is one copy in search, not two.
+- ~~**The lab sandbox**~~ — graduated onto the real article route (rail, share,
+  standfirst, hero, FAQ accordion, aside callouts) and the directory deleted.
+- ~~**Guides renamed to Reads**~~ — label and route, with a permanent 308 on
+  `/guides/:path*`.
+- ~~**Article images 404ing in production**~~ — the `/guides -> /reads` redirect
+  was also catching `public/guides/*`. Images moved to `public/media`, which
+  cannot collide with a route.
+- ~~**Cards ignored the post's own image**~~ — `Thumb` was purely decorative and
+  never looked, so even posts with a photograph showed a generated pattern.
 
 ---
 
