@@ -1,6 +1,7 @@
 import Icon from "@/components/brand/Icon";
 import type { GuideCategory } from "@/lib/guides";
 import type { Tint } from "@/lib/ui";
+import { asset } from "@/lib/site";
 
 /**
  * A crafted, editorial thumbnail for guide cards — layered tint wash,
@@ -28,12 +29,32 @@ const GLYPH: Record<Tint, string> = {
 
 export default function Thumb({
   category,
+  src,
+  alt,
   className = "",
 }: {
   category: GuideCategory;
+  /** The post's own image. When absent, the decorative fallback below is used. */
+  src?: string;
+  alt?: string;
   className?: string;
 }) {
   const tint = category.tint;
+
+  /* A real photograph beats a generated pattern every time. The decorative
+     version below is the fallback for posts that have no image yet — it was
+     being shown even for posts that did, because this component never looked. */
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={asset(src)}
+        alt={alt ?? ""}
+        className={`object-cover ${className}`}
+        loading="lazy"
+      />
+    );
+  }
 
   return (
     <div

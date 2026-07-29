@@ -20,7 +20,14 @@ export default async function PostCard({ post, showCategory = true }: { post: Gu
     <article className="lift group h-full overflow-hidden rounded-card bg-surface shadow-card ring-1 ring-brand-500/[0.06]">
       <Link href={postPath(post.category, post.slug)} className="flex h-full flex-col">
         <div className="relative">
-          {category ? <Thumb category={category} className="h-32" /> : null}
+          {category ? (
+            <Thumb
+              category={category}
+              src={post.ogImage}
+              alt={post.ogImageAlt}
+              className="h-32 w-full"
+            />
+          ) : null}
           {showCategory && category ? (
             <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-brand-600 shadow-soft">
               {category.singular}

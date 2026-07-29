@@ -47,7 +47,12 @@ export default async function FeaturedPost({ post }: { post: GuidePost }) {
         </div>
 
         <div className="relative min-h-[200px] md:min-h-0">
-          <Thumb category={category} className="absolute inset-0" />
+          <Thumb
+            category={category}
+            src={post.ogImage}
+            alt={post.ogImageAlt}
+            className="absolute inset-0 h-full w-full"
+          />
           <span className="absolute bottom-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-wide text-brand-700 shadow-soft backdrop-blur">
             <Icon name={category.icon} className="h-3.5 w-3.5" />
             {category.singular}
