@@ -109,10 +109,9 @@ Both are one-step once the listing exists.
       (`/reads/article/` → `/reads/articles/`). The 308s mean nothing is lost,
       but Search Console holds the old URL list until it recrawls. One trip
       covers both moves — no reason to do it twice.
-- [ ] **Old `/guides/<singular-category>/…` links now take two hops.** The
-      wildcard rewrites `/guides/*` → `/reads/*`, and only then does the
-      category rule fire. Two 308s is within what Google follows, but a single
-      combined rule would be tidier if those old links ever matter.
+      Every URL in it now resolves 200 directly. It used to list the
+      slash-less form (`/reads/articles`) while the canonical tag carried the
+      slash, so all 25 entries 308'd to the page we actually wanted indexed.
 - [ ] **8 of 11 posts have no `og_image`**, so their cards fall back to the
       decorative pattern. Cards now use the real image whenever one is set.
 

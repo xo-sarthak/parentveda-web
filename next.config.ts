@@ -47,15 +47,26 @@ const nextConfig: NextConfig = {
   /* Category slugs were pluralised on 30 July 2026 so each URL matches the
    * heading on the page it opens (/reads/articles/ is titled "Articles").
    *
-   * Same reasoning as above, and the same 308. Order matters: the four
-   * category rules must come BEFORE the /guides wildcard is applied to a
-   * request, but since Next evaluates this list top to bottom against the
-   * INCOMING path, a request for the old /guides/article/x is rewritten to
-   * /reads/article/x by the wildcard and would then need a second hop. So
-   * the category rules are written against /reads and the chain resolves in
-   * two redirects for the oldest links — acceptable, and Google follows it.
+   * TWO THINGS THAT ARE EASY TO GET WRONG HERE, both learned the hard way:
    *
-   * `parenting-faq` is absent deliberately: its slug did not change. */
+   * 1. Every destination ends in a slash. `trailingSlash: true` does NOT
+   *    normalise redirect destinations — a destination of `/reads/articles`
+   *    emits that literal Location, which then 308s again to add the slash.
+   *    Cheap to miss, because following the chain still lands on a 200; you
+   *    only see it by counting hops.
+   *
+   * 2. The /guides rules are written per-category rather than leaning on the
+   *    /guides wildcard. Next matches the INCOMING path top to bottom and
+   *    redirects once per request, so a wildcard-only chain would send
+   *    /guides/article/x through /reads/article/x and pick up the category
+   *    rename on a later round trip — four hops for the oldest links. Naming
+   *    both renames in one rule collapses that to one.
+   *
+   * Order matters: the specific /guides/<old-category> rules must precede the
+   * generic /guides wildcard, or the wildcard swallows them first.
+   *
+   * `parenting-faq` is absent from the rename list deliberately: its slug did
+   * not change, so the plain /guides wildcard already handles it. */
   async redirects() {
     const CATEGORY_RENAMES: Array<[string, string]> = [
       ["article", "articles"],
@@ -64,17 +75,21 @@ const nextConfig: NextConfig = {
       ["recipe", "recipes"],
     ];
 
-    return [
-      ...CATEGORY_RENAMES.flatMap(([from, to]) => [
-        { source: `/reads/${from}`, destination: `/reads/${to}`, permanent: true },
+    const renameRules = CATEGORY_RENAMES.flatMap(([from, to]) =>
+      ["/reads", "/guides"].flatMap((base) => [
+        { source: `${base}/${from}`, destination: `/reads/${to}/`, permanent: true },
         {
-          source: `/reads/${from}/:slug*`,
-          destination: `/reads/${to}/:slug*`,
+          source: `${base}/${from}/:slug*`,
+          destination: `/reads/${to}/:slug*/`,
           permanent: true,
         },
-      ]),
-      { source: "/guides", destination: "/reads", permanent: true },
-      { source: "/guides/:path*", destination: "/reads/:path*", permanent: true },
+      ])
+    );
+
+    return [
+      ...renameRules,
+      { source: "/guides", destination: "/reads/", permanent: true },
+      { source: "/guides/:path*", destination: "/reads/:path*/", permanent: true },
     ];
   },
 };
