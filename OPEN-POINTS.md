@@ -89,12 +89,30 @@ Both are one-step once the listing exists.
 - [ ] **Images live in the repo, not in storage.** `public/media/*` is served off
       the filesystem and shipped by `git push`, so adding an article image needs
       a developer and a deploy, and cannot be done from Directus. Fine for a
-      handful; a bottleneck the moment publishing is weekly. The unused
-      `hero_file` / `og_image_file` columns look like Directus file references —
-      ask the app terminal whether those are the intended route.
+      handful; a bottleneck the moment publishing is weekly.
+
+      **Answered by the app terminal, 30 July 2026: yes, `hero_file` /
+      `og_image_file` are the intended route.** Migration `0046` added them as
+      Directus file-picker columns plus a `cms_sync_media()` trigger that
+      derives the public URL into `hero_image` / `og_image` on save. So an
+      editor uploads, the trigger writes the URL, and this site reads the plain
+      text column exactly as it does today — no code change here.
+
+      It is switched OFF: `cms_media_base()` returns `''` until Cloudflare R2 is
+      configured, and while it returns empty the trigger writes nothing. Two
+      steps to turn on — point Directus storage at the R2 bucket, then make
+      `cms_media_base()` return the public base URL. **Treat `hero_image` /
+      `og_image` as derived from that day on**: two ways to set an image means
+      one of them is wrong and nobody knows which.
 - [ ] **Resubmit the sitemap in Search Console.** The whole section moved from
-      `/guides` to `/reads`. The 308s mean nothing is lost, but Search Console
-      holds the old URL list until it recrawls.
+      `/guides` to `/reads`, and on 30 July the category slugs were pluralised
+      (`/reads/article/` → `/reads/articles/`). The 308s mean nothing is lost,
+      but Search Console holds the old URL list until it recrawls. One trip
+      covers both moves — no reason to do it twice.
+- [ ] **Old `/guides/<singular-category>/…` links now take two hops.** The
+      wildcard rewrites `/guides/*` → `/reads/*`, and only then does the
+      category rule fire. Two 308s is within what Google follows, but a single
+      combined rule would be tidier if those old links ever matter.
 - [ ] **8 of 11 posts have no `og_image`**, so their cards fall back to the
       decorative pattern. Cards now use the real image whenever one is set.
 
@@ -227,3 +245,43 @@ done nothing wrong. Use `@/lib/supabase-portal` (`cache: "no-store"`).
 - [ ] **Password reset.** There is no `/portal/forgot`. Supabase can send the
   email, but the project has no transactional email provider wired yet
   (`STILL-OPEN` §11.6) — same blocker as employee activation.
+
+---
+
+## Publish → this site is now instant (30 July 2026)
+
+`POST /api/revalidate` calls `revalidateTag(CONTENT_TAG)`, so a Directus publish
+drops every cached content read at once instead of waiting out the 60-second
+window. Without it an editor refreshes, sees the old page, concludes the panel
+is broken, and presses Publish again.
+
+**Both halves are needed or it does nothing:**
+
+1. Vercel → Environment Variables → `REVALIDATE_SECRET` = a long random string.
+2. Directus → Settings → Flows → **Event Hook (Action, non-blocking)** on
+   `items.create` + `items.update` for `content_posts`, `content_categories`,
+   `content_authors` → **Webhook** `POST https://parentveda.in/api/revalidate`
+   with header `x-revalidate-secret: <the same string>`.
+
+Non-blocking on purpose: if this site is down, saving in Directus must still
+work. A publish that fails because a cache could not be cleared is worse than a
+page that is 60 seconds stale — which is what happens anyway when the webhook
+never arrives.
+
+**Why it needs a secret when every guide is public.** Nothing secret leaks; what
+leaks is money and latency. An open cache-buster can be called in a loop, making
+every subsequent page view a cold render against Supabase — slower site, higher
+bills, and nothing in the logs that looks like an attack. *Authentication is not
+only about secrets: anything that lets a stranger make your infrastructure do
+expensive work needs a gate.*
+
+An unset `REVALIDATE_SECRET` **fails closed** (503). "No secret configured, so
+allow it" would turn a forgotten environment variable into an open endpoint, and
+forgetting one is the likeliest way this ends up misconfigured.
+
+⚠️ Next 16 changed the signature: `revalidateTag(tag, profile)`. Calling it with
+one argument is a type error — and "fixing" that by dropping the tag turns a
+targeted invalidation into nothing at all.
+
+Check a deployment without crafting a POST: `GET /api/revalidate` reports
+whether the secret is set (never what it is).

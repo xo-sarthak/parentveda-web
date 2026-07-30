@@ -15,7 +15,7 @@
 --
 -- Run in: Supabase dashboard → SQL Editor.
 
--- article/eating-for-two-pregnancy-nutrition-myth
+-- articles/eating-for-two-pregnancy-nutrition-myth
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -23,7 +23,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'article',
+  'articles',
   'eating-for-two-pregnancy-nutrition-myth',
   'Eating for two? Why pregnancy nutrition isn''t about double portions',
   '“Eating for two” is a myth. Here''s what your body actually needs each trimester — calm, practical pregnancy nutrition without the pressure.',
@@ -54,10 +54,10 @@ Nourishment matters far more than volume. Iron (palak, dal, gud), calcium (doodh
   '2026-06-18'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'article' and slug = 'eating-for-two-pregnancy-nutrition-myth'
+  where category = 'articles' and slug = 'eating-for-two-pregnancy-nutrition-myth'
 );
 
--- article/understanding-baby-movements-during-pregnancy
+-- articles/understanding-baby-movements-during-pregnancy
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -65,7 +65,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'article',
+  'articles',
   'understanding-baby-movements-during-pregnancy',
   'Understanding your baby''s movements: what kicks and flutters mean',
   'When do baby kicks start, what''s normal, and when to call your doctor? A calm guide to fetal movement through the second and third trimesters.',
@@ -92,10 +92,10 @@ There''s no single “correct” number of kicks. What matters is your baby''s o
   '2026-05-20'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'article' and slug = 'understanding-baby-movements-during-pregnancy'
+  where category = 'articles' and slug = 'understanding-baby-movements-during-pregnancy'
 );
 
--- research-summary/folic-acid-pregnancy-research-summary
+-- research-summaries/folic-acid-pregnancy-research-summary
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -103,7 +103,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'research-summary',
+  'research-summaries',
   'folic-acid-pregnancy-research-summary',
   'Folic acid before and during pregnancy: what the evidence says',
   'A plain-language summary of the research on folic acid in pregnancy — why 400 mcg daily is recommended and how it lowers neural tube defect risk.',
@@ -132,10 +132,10 @@ Because the neural tube closes in the first weeks, starting before conception (o
   '2026-06-10'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'research-summary' and slug = 'folic-acid-pregnancy-research-summary'
+  where category = 'research-summaries' and slug = 'folic-acid-pregnancy-research-summary'
 );
 
--- research-summary/prenatal-music-and-baby-research-summary
+-- research-summaries/prenatal-music-and-baby-research-summary
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -143,7 +143,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'research-summary',
+  'research-summaries',
   'prenatal-music-and-baby-research-summary',
   'Does prenatal music affect your baby? An honest look at the research',
   'Garbh Sanskar and prenatal music are deeply loved traditions. Here''s a calm, honest summary of what the science does — and doesn''t — show.',
@@ -171,10 +171,10 @@ Strong, long-term claims — that a particular raga makes a baby smarter, for in
   '2026-05-02'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'research-summary' and slug = 'prenatal-music-and-baby-research-summary'
+  where category = 'research-summaries' and slug = 'prenatal-music-and-baby-research-summary'
 );
 
--- book-summary/what-to-expect-when-youre-expecting-summary
+-- book-summaries/what-to-expect-when-youre-expecting-summary
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -182,7 +182,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'book-summary',
+  'book-summaries',
   'what-to-expect-when-youre-expecting-summary',
   'What to Expect When You''re Expecting — a calm summary',
   'A short, honest summary of ''What to Expect When You''re Expecting'' — the key takeaways from the classic month-by-month pregnancy guide.',
@@ -211,10 +211,10 @@ The book is thorough, which can occasionally tip into overwhelm. Take what sooth
   '2026-04-15'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'book-summary' and slug = 'what-to-expect-when-youre-expecting-summary'
+  where category = 'book-summaries' and slug = 'what-to-expect-when-youre-expecting-summary'
 );
 
--- book-summary/ina-mays-guide-to-childbirth-summary
+-- book-summaries/ina-mays-guide-to-childbirth-summary
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -222,7 +222,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'book-summary',
+  'book-summaries',
   'ina-mays-guide-to-childbirth-summary',
   'Ina May''s Guide to Childbirth — key takeaways',
   'A short summary of Ina May Gaskin''s ''Guide to Childbirth'' — what it teaches about trusting your body, relaxation and birth without fear.',
@@ -251,10 +251,10 @@ Whatever birth you plan or experience, the spirit of the book travels well: prep
   '2026-04-22'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'book-summary' and slug = 'ina-mays-guide-to-childbirth-summary'
+  where category = 'book-summaries' and slug = 'ina-mays-guide-to-childbirth-summary'
 );
 
--- recipe/moong-dal-khichdi-pregnancy-recipe
+-- recipes/moong-dal-khichdi-pregnancy-recipe
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -262,7 +262,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'recipe',
+  'recipes',
   'moong-dal-khichdi-pregnancy-recipe',
   'Moong dal khichdi for pregnancy — gentle, iron-rich comfort',
   'An easy moong dal khichdi recipe for pregnancy — warm, light, easy to digest and quietly nourishing. Ready in about 30 minutes.',
@@ -281,10 +281,10 @@ select
   '2026-05-08'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'recipe' and slug = 'moong-dal-khichdi-pregnancy-recipe'
+  where category = 'recipes' and slug = 'moong-dal-khichdi-pregnancy-recipe'
 );
 
--- recipe/lemon-ginger-water-pregnancy-nausea-recipe
+-- recipes/lemon-ginger-water-pregnancy-nausea-recipe
 insert into public.content_posts (
   status, category, slug, title, description, excerpt, body, author,
   reading_time, tags, trimester, recipe, source, book_meta,
@@ -292,7 +292,7 @@ insert into public.content_posts (
 )
 select
   'published',
-  'recipe',
+  'recipes',
   'lemon-ginger-water-pregnancy-nausea-recipe',
   'Lemon-ginger morning water for pregnancy nausea',
   'A simple lemon-ginger water to ease early-pregnancy nausea (ji-michli). A gentle 5-minute morning settler — sip slowly.',
@@ -311,7 +311,7 @@ select
   '2026-05-15'::timestamptz
 where not exists (
   select 1 from public.content_posts
-  where category = 'recipe' and slug = 'lemon-ginger-water-pregnancy-nausea-recipe'
+  where category = 'recipes' and slug = 'lemon-ginger-water-pregnancy-nausea-recipe'
 );
 
 -- parenting-faq/can-i-eat-papaya-during-pregnancy

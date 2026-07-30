@@ -32,11 +32,17 @@ export const GUIDES_TAGLINE =
 
 /* ---------------- Categories ---------------- */
 
+/* Slug = the plural display name, kebab-cased, so the URL always matches the
+   heading the reader sees: /reads/articles/ is titled "Articles".
+   `parenting-faq` is not an exception — its label IS "Parenting FAQ".
+
+   Renamed from the singular forms on 30 July 2026; next.config.ts holds a
+   permanent redirect per old slug. */
 export type CategorySlug =
-  | "article"
-  | "research-summary"
-  | "book-summary"
-  | "recipe"
+  | "articles"
+  | "research-summaries"
+  | "book-summaries"
+  | "recipes"
   | "parenting-faq";
 
 export type GuideCategory = {

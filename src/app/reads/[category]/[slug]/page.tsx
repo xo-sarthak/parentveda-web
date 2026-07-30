@@ -267,7 +267,7 @@ function buildJsonLd(
     logo: { "@type": "ImageObject", url: `${SITE_URL}/parentveda-mark.png` },
   };
 
-  if (post.category === "recipe" && post.recipe) {
+  if (post.category === "recipes" && post.recipe) {
     return {
       "@context": "https://schema.org",
       "@type": "Recipe",
