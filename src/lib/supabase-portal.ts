@@ -130,6 +130,18 @@ export type SponsorDashboard = {
 
 export type NotAnAdmin = { ok: false; code: string };
 
+/** One month from `sponsor_trend()` (0063). Oldest first, no gaps — a month in
+    which nothing happened is a zero, because a gap reads as "no data" and only
+    one of those is what we mean. */
+export type SponsorTrendPoint = {
+  month: string;
+  activated_in_month: number;
+  activated_cumulative: number;
+  /** null when THAT month had fewer than min_cohort distinct people — a
+      stricter test than the dashboard's whole-programme one. */
+  consultations_booked: number | null;
+};
+
 export type SponsorPerson = {
   work_email: string;
   /** From the sheet HR sent us. Null for someone who activated by email domain

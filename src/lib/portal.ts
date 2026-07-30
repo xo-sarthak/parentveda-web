@@ -23,6 +23,13 @@ export function shortDate(iso: string | null | undefined): string {
   });
 }
 
+/** "Jul 2026" — for the month-by-month table. */
+export function monthLabel(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+}
+
 /** What a roster row's status should read as, in HR's words rather than the
     database's. `not_activated` is the one that matters — it is the follow-up
     list, and "not yet" is an invitation where "inactive" is a verdict. */

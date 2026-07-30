@@ -16,7 +16,6 @@ import { authorPath, type Author } from "@/lib/authors";
  */
 export default function AuthorCard({
   author,
-  variant = "gradient",
   profileHref,
   role = "About the author",
 }: {
@@ -27,14 +26,7 @@ export default function AuthorCard({
   role?: string;
   /** Overrides the profile link — see ArticleByline. */
   profileHref?: string;
-  /**
-   * "solid" drops the three-stop wash and the gradient accent rail for a flat
-   * surface and one brand purple. The article route uses the default; "solid"
-   * is kept because the flat treatment reads better on a white page.
-   */
-  variant?: "gradient" | "solid";
 }) {
-  const solid = variant === "solid";
   const facts = [
     author.experience ? { icon: "calendar" as const, text: author.experience } : null,
     author.registration ? { icon: "shield" as const, text: author.registration } : null,
@@ -52,19 +44,13 @@ export default function AuthorCard({
         {role}
       </h2>
 
-      <div
-        className={`group relative mt-5 overflow-hidden rounded-card p-6 shadow-card ring-1 ring-brand-500/10 transition-shadow duration-300 hover:shadow-float sm:p-7 ${
-          solid ? "bg-surface" : "bg-gradient-to-br from-mist via-surface to-brand-50/70"
-        }`}
-      >
-        {/* Accent rail. Flat brand purple in the solid variant; the original
-            three-stop brand→coral gradient otherwise. */}
-        <span
-          aria-hidden="true"
-          className={`absolute inset-y-0 left-0 w-1 ${
-            solid ? "bg-brand-500" : "bg-gradient-to-b from-brand-400 via-brand-500 to-coral-400"
-          }`}
-        />
+      <div className="group relative mt-5 overflow-hidden rounded-card bg-surface p-6 shadow-card ring-1 ring-brand-500/10 transition-shadow duration-300 hover:shadow-float sm:p-7">
+        {/* Flat brand purple. There was a `variant` prop here offering a
+            three-stop brand-to-coral gradient rail and a tinted wash; it has
+            been removed rather than defaulted off, because a variant nobody
+            wants is a variant that comes back the next time a call site
+            forgets to opt out. Which is exactly what happened. */}
+        <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-brand-500" />
 
         <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
           <AuthorAvatar author={author} size={84} className="sm:mt-1" />

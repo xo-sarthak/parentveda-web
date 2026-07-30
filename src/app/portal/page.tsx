@@ -179,13 +179,21 @@ export default async function PortalHome() {
         </p>
       </section>
 
-      <div className="mt-8">
+      <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href="/portal/people"
           className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-3 font-jakarta text-sm font-bold text-white transition hover:bg-brand-600"
         >
           See your people
           <span aria-hidden>→</span>
+        </Link>
+        {/* HR forwards numbers upward far more often than they browse them, so
+            the report is a first-class output rather than a link in a footer. */}
+        <Link
+          href="/portal/report"
+          className="inline-flex items-center gap-2 rounded-xl bg-mist px-5 py-3 font-jakarta text-sm font-bold text-brand-600 ring-1 ring-brand-100 transition hover:bg-mist-2"
+        >
+          Report for your leadership
         </Link>
       </div>
     </PortalShell>
