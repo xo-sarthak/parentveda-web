@@ -49,11 +49,36 @@ Both are one-step once the listing exists.
       **both** `/invite` and `/care` from the waitlist CTA to the store redirect.
       It is false today because redirecting would send every scan and every
       shared link to a 404 store page.
-- [ ] **`/.well-known/assetlinks.json`** — currently 404, deliberately. Needs the
+- [ ] **`/.well-known/assetlinks.json`** — the file now EXISTS at
+      `public/.well-known/assetlinks.json` with a deliberately invalid
+      placeholder fingerprint. The path, shape and MIME type are settled; one
+      value is not.
+
+      Replace `REPLACE_ME__PLAY_APP_SIGNING_SHA256__SEE_OPEN-POINTS.md` with the
       **Play App Signing** SHA-256 from Play Console (Setup → App signing), *not*
-      a local debug fingerprint. Must be served as `application/json` with no
-      redirect on that path. Until it exists, links open in the browser even for
-      people who already have the app.
+      a local debug fingerprint. The local key signs the APK you upload; Play
+      re-signs it with a different one, and pasting the wrong fingerprint fails
+      identically to having no file at all — which is why this is worth stating
+      twice.
+
+      Verify after deploy. It must be `application/json`, HTTP 200, no redirect
+      (`trailingSlash: true` does not rewrite files with an extension in
+      `public/`, but confirm rather than assume):
+
+      ```
+      curl -sI https://parentveda.in/.well-known/assetlinks.json
+      ```
+
+      Until the real fingerprint lands, verification fails and links open in the
+      browser — exactly today's behaviour, so the placeholder ships safely.
+
+      **Only `com.parentveda.app` is listed, on purpose.** The doctor build
+      (`com.parentveda.app.doctor`) shares one Android manifest with the parent
+      app, so it also declares an intent filter for `/care`. It should not: a
+      doctor's QR opening ParentVeda+ does nothing, because that app never
+      starts the link handler. The fix belongs on the app side — drop the filter
+      from the doctor flavour. Adding the doctor package here would instead make
+      the wrong app a *verified* handler, which is worse than the ambiguity.
 
 ---
 
