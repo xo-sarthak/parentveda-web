@@ -84,14 +84,6 @@ Both are one-step once the listing exists.
 
 ## 🆕 Raised today
 
-- [ ] **JSON-LD still says `author`, but the page says reviewer.** The byline and
-      closing card now read "Medically reviewed by", while the structured data
-      still claims Dr. Mahender Singh authored the piece. Google reads that, and
-      on YMYL health content the author/reviewer distinction is precisely what it
-      weighs. The content team's own SEO pack asks for `MedicalWebPage +
-      FAQPage + Person (author + reviewer)`. Needs a decision on **who the author
-      is** (in-house? ParentVeda as an Organization?) and a `reviewer` column on
-      `content_posts`, which does not exist yet.
 - [ ] **The emergency-signs recap was removed** with the "When to consult your
       doctor" section. The information survives earlier in the piece under "Signs
       that need immediate medical attention", but it was the last thing a reader
@@ -139,6 +131,19 @@ Both are one-step once the listing exists.
       slash, so all 25 entries 308'd to the page we actually wanted indexed.
 - [ ] **8 of 11 posts have no `og_image`**, so their cards fall back to the
       decorative pattern. Cards now use the real image whenever one is set.
+
+## 🆕 Raised 3 August — from the hyperemesis article
+
+- [ ] **10-row doctor validation table** ships with this article, all rows
+      unverified: diagnostic criteria, the hCG mechanism, the timeline (text
+      *and* the visual), the treatment ladder, IV fluids and thiamine, the red
+      flags, and the new medication-safety FAQ. Rows 1–7 are marked High.
+- [ ] **Reading times are not derived from anything.** Across 13 posts the
+      implied rate runs from 22 to 379 words per minute. Ectopic claims 6 min
+      for 2,276 words; the seeded posts claim 5 min for 180. Hyperemesis was
+      set at 7 min using the fibroids rate (~230 wpm), which is the only
+      realistic one in the set. Either compute it on save or accept that the
+      number is decorative.
 
 ## ❓ Decisions needed
 
@@ -202,6 +207,21 @@ Both are one-step once the listing exists.
 
 ## ✅ Closed
 
+- ~~**JSON-LD said `author` where the page said reviewer**~~ — settled 3 August:
+  the credit **is** "Medically reviewed by". The Article node now carries
+  `["Article", "MedicalWebPage"]` with the doctor under `reviewedBy` plus
+  `lastReviewed`, and `author` set to ParentVeda as the Organization, since
+  nobody is credited as the writer on the page. `reviewedBy`/`lastReviewed`
+  belong to MedicalWebPage, not Article, which is why the node needs both
+  types. Posts bylined "Team ParentVeda" keep the plain `Article` shape and
+  emit no reviewer — their byline shows no review credit either. Verified on
+  all three doctor-reviewed articles. No `reviewer` column was needed.
+- ~~**The hyperemesis Insight was missing its closing line**~~ — the pack's
+  notes promised a line the final piece did not contain. Reinstated 3 August,
+  reworded away from *"You're ill"*: a label on the person, where the point is
+  that the illness is the thing happening **to** her. Now lands on *"What's
+  happening to you is an illness, not a failing, and it's one that gets better
+  with care."*
 - ~~**Mahender vs Mahendra**~~ — confirmed **Mahender**, which is what the code
   and the slug `dr-mahender-singh` already used. No change needed.
 - ~~**Invite code format**~~ — confirmed exactly **7 characters** from

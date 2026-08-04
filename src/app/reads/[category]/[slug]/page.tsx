@@ -303,25 +303,39 @@ function buildJsonLd(
     };
   }
 
+  /* A credentialed Person with a crawlable URL is worth far more on YMYL
+     health content than an Organization name — but it has to say the same
+     thing the page says. The page credits Dr. Mahender Singh as REVIEWER
+     ("Medically reviewed by"), so claiming him as `author` in the structured
+     data asserted something the visible byline never did. On medical content
+     the author/reviewer distinction is precisely what Google weighs, and
+     getting it wrong is worse than omitting the person entirely.
+     `reviewedBy` and `lastReviewed` belong to MedicalWebPage, not Article,
+     which is why the node carries both types. */
+  const reviewer = author
+    ? {
+        "@type": "Person",
+        name: author.name,
+        url: `${SITE_URL}${authorPath(author.slug)}`,
+        jobTitle: author.role,
+        ...(author.specialties.length ? { knowsAbout: author.specialties } : {}),
+      }
+    : null;
+
   return {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": reviewer ? ["Article", "MedicalWebPage"] : "Article",
     headline: post.title,
     description: post.description,
     datePublished: post.date,
     dateModified: post.updated ?? post.date,
-    /* A credentialed Person with a URL Google can crawl is worth far more on
-       YMYL health content than an Organization name. Falls back to the old
-       Organization shape for posts still bylined "Team ParentVeda". */
-    author: author
-      ? {
-          "@type": "Person",
-          name: author.name,
-          url: `${SITE_URL}${authorPath(author.slug)}`,
-          jobTitle: author.role,
-          ...(author.specialties.length ? { knowsAbout: author.specialties } : {}),
-        }
+    /* Nobody is credited as the writer on the page, so the publisher is the
+       honest author. Posts still bylined "Team ParentVeda" keep that name —
+       their byline shows no reviewer role at all (see ArticleByline). */
+    author: reviewer
+      ? { "@type": "Organization", name: SITE_NAME, url: SITE_URL }
       : { "@type": "Organization", name: post.author },
+    ...(reviewer ? { reviewedBy: reviewer, lastReviewed: post.updated ?? post.date } : {}),
     publisher,
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalAbs },
     image: [ogImageAbs],
